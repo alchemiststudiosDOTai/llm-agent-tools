@@ -83,7 +83,7 @@ cp .llm-tools.conf.example .llm-tools.conf
 Install missing dependencies:
 ```bash
 # Ubuntu/Debian
-apt install sqlite3 python3 python3-pip
+sudo apt-get update && sudo apt-get install -y sqlite3 libsqlite3-dev python3 python3-pip
 
 # macOS
 brew install sqlite3 python3
