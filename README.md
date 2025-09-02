@@ -12,16 +12,40 @@ An integrated toolkit for LLM agents that combines temporary workspace managemen
 
 ## Installation
 
-### Prerequisites
-- Bash 4.0+
-- Python 3.8+
-- SQLite3 with FTS5 support
-- `uv` package manager (for Python dependencies)
+### Quick Install
 
-### Setup
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/yourusername/llm-agent-tools.git
+cd llm-agent-tools
+
+# Run the installer
+./install.sh
+```
+
+The installer will:
+- Check all dependencies (Bash 4.0+, Python 3.8+, SQLite3 with FTS5)
+- Detect any existing `.claude` directories
+- Offer safe installation options if conflicts exist
+- Set up the complete knowledge base structure
+- Install Python dependencies if `uv` is available
+
+### Installation Options
+
+The installer handles various scenarios intelligently:
+
+1. **Fresh Installation** - If no `.claude` directory exists, creates the full structure
+2. **Safe Merge** - If `.claude` exists, only adds missing directories without overwriting
+3. **Alternative Directory** - If you have Claude Desktop's `.claude`, uses `.llm-agent-tools` instead
+4. **Backup & Replace** - Creates a timestamped backup before fresh installation
+
+### Manual Setup
+
+If you prefer manual installation:
+
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/llm-agent-tools.git
 cd llm-agent-tools
 
 # Make scripts executable
@@ -33,6 +57,51 @@ uv pip install -r pyproject.toml
 # Initialize knowledge base structure
 ./scratchpad.sh new general "initial_setup"
 ```
+
+### Custom Directory Configuration
+
+You can use a custom directory instead of `.claude`:
+
+```bash
+# Using environment variable
+export CLAUDE_DIR="/path/to/your/knowledge/base"
+./scratchpad.sh new task "my_task"
+
+# Using configuration file
+cp .llm-tools.conf.example .llm-tools.conf
+# Edit .llm-tools.conf to set your custom paths
+```
+
+### Prerequisites
+
+- **Bash 4.0+** - Required for array support and modern bash features
+- **Python 3.8+** - Required for RAG indexing and search
+- **SQLite3 with FTS5** - Required for full-text search capabilities
+- **uv** (recommended) - Fast Python package manager (installer will prompt if missing)
+
+Install missing dependencies:
+```bash
+# Ubuntu/Debian
+apt install sqlite3 python3 python3-pip
+
+# macOS
+brew install sqlite3 python3
+
+# Install uv (recommended)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+### Uninstalling
+
+To remove LLM Agent Tools:
+```bash
+./uninstall.sh
+```
+
+The uninstaller will:
+- Preserve your knowledge base by default
+- Offer to create a backup before removal
+- Clean up only files installed by the installer
 
 ## Core Tools
 
