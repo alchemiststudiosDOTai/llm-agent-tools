@@ -1,0 +1,11 @@
+/home/fabian/llm-agent-tools/claude-rag/target/release/deps/libbitpacking-18e2f7c93eab01e7.rmeta: /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/lib.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros_simple.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker1x.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker4x.rs
+
+/home/fabian/llm-agent-tools/claude-rag/target/release/deps/libbitpacking-18e2f7c93eab01e7.rlib: /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/lib.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros_simple.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker1x.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker4x.rs
+
+/home/fabian/llm-agent-tools/claude-rag/target/release/deps/bitpacking-18e2f7c93eab01e7.d: /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/lib.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros_simple.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker1x.rs /home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker4x.rs
+
+/home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/lib.rs:
+/home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros.rs:
+/home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/macros_simple.rs:
+/home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker1x.rs:
+/home/fabian/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bitpacking-0.9.2/src/bitpacker4x.rs:
