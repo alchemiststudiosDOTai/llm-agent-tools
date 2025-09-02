@@ -1,13 +1,14 @@
 # LLM Agent Tools
 
-A comprehensive toolkit for LLM agents to maintain persistent knowledge bases, manage temporary workspaces, and efficiently retrieve information using RAG (Retrieval-Augmented Generation).
+An integrated toolkit for LLM agents that combines temporary workspace management with persistent knowledge retrieval. These tools work together to create a comprehensive workflow for maintaining context, building knowledge, and efficiently accessing information through RAG (Retrieval-Augmented Generation).
 
 ## Features
 
-- **Scratchpad System**: Temporary workspace management for agent notes and planning
-- **RAG-based Knowledge Retrieval**: Fast SQLite FTS5 full-text search across knowledge base
-- **Organized Knowledge Base**: Structured `.claude/` directory for persistent knowledge
-- **Clear Workflow Phases**: Research → Plan → Implement cycle with proper tooling
+- **Integrated Workflow**: Tools designed to work together, not in isolation
+- **Scratchpad + RAG Synergy**: Temporary notes flow into searchable knowledge base
+- **Persistent Knowledge Building**: Every task contributes to growing knowledge base
+- **Fast Retrieval**: SQLite FTS5 enables instant access to all past work
+- **Structured Organization**: Clear pipeline from temporary work to permanent knowledge
 
 ## Installation
 
@@ -78,7 +79,9 @@ Organized directory structure for persistent knowledge storage:
     └── archive/       # Completed or old scratchpads
 ```
 
-## Workflow
+## Integrated Workflow
+
+The tools work together in a continuous cycle where each task builds on previous knowledge:
 
 ```mermaid
 flowchart TD
@@ -86,8 +89,9 @@ flowchart TD
     
     Research["`**RESEARCH PHASE**
     1. Create scratchpad: ./scratchpad.sh new task 'description'
-    2. Query RAG: ./claude-rag-lite.sh query 'search terms'
-    3. If insufficient → grep/search full KB`"]
+    2. Query existing knowledge: ./claude-rag-lite.sh query 'terms'
+    3. Document findings in scratchpad
+    4. Build on what exists, don't recreate`"]
     --> Plan
     
     Plan["`**PLAN PHASE**
@@ -106,81 +110,96 @@ flowchart TD
     Review -->|Yes| Complete
     
     Complete["`**COMPLETION**
-    1. File scratchpad: ./scratchpad.sh complete
-    2. Update index: ./claude-rag-lite.sh build
-    3. Archive notes`"]
-    --> End([Done])
+    1. File scratchpad to appropriate .claude/ directory
+    2. Update RAG index: ./claude-rag-lite.sh build
+    3. Knowledge now searchable for future tasks`"]
+    --> End([Knowledge Base Enhanced])
 ```
 
 ## Usage Examples
 
-### Starting a New Task
+### Starting a New Task (Integrated Workflow)
 ```bash
-# Create a task scratchpad
+# Step 1: Create workspace AND search existing knowledge simultaneously
 ./scratchpad.sh new task "implement_user_auth"
+./claude-rag-lite.sh query "authentication JWT tokens user auth"
 
-# Search existing knowledge
-./claude-rag-lite.sh query "authentication JWT tokens"
+# Step 2: Build on existing knowledge, document in scratchpad
+./scratchpad.sh append task_implement_user_auth_*.md "Found JWT pattern in patterns/jwt_auth.md"
+./scratchpad.sh append task_implement_user_auth_*.md "Previous auth debug in debug_history/auth_fix.md"
 
-# Append findings to scratchpad
-./scratchpad.sh append task_implement_user_auth_*.md "Found JWT implementation in patterns/"
+# Step 3: Continue working, searching, and documenting
+./claude-rag-lite.sh query "session management"
+./scratchpad.sh append task_implement_user_auth_*.md "Implemented using existing session pattern"
 
-# When complete, file the scratchpad
+# Step 4: Complete cycle - file knowledge and update index
 ./scratchpad.sh complete task_implement_user_auth_*.md
 ./scratchpad.sh filed task_implement_user_auth_*.md
+./claude-rag-lite.sh build  # New knowledge now searchable
 ```
 
-### Debugging Session
+### Debugging Session (Building on Past Solutions)
 ```bash
-# Create debug scratchpad
+# Step 1: Start debugging WITH knowledge search
 ./scratchpad.sh new debug "api_timeout_issue"
+./claude-rag-lite.sh query "timeout API connection error"  # Check if solved before
 
-# Search for similar issues
-./claude-rag-lite.sh query "timeout API connection error"
+# Step 2: Found similar issue - build on it
+./scratchpad.sh append debug_api_timeout_*.md "Similar issue in debug_history/timeout_2024.md"
+./scratchpad.sh append debug_api_timeout_*.md "Previous solution: 30s timeout, but this needs 45s"
 
-# Document solution
-./scratchpad.sh append debug_api_timeout_*.md "Solution: Increased timeout to 30s"
-
-# File to debug_history
+# Step 3: Document complete solution for future
+./scratchpad.sh append debug_api_timeout_*.md "Root cause: Large payload processing"
 ./scratchpad.sh complete debug_api_timeout_*.md
+./claude-rag-lite.sh build  # Future debugging can find this
 ```
 
-### Planning a Feature
+### Planning a Feature (Leveraging All Knowledge)
 ```bash
-# Create planning scratchpad
+# Step 1: Plan WITH comprehensive knowledge search
 ./scratchpad.sh new plan "payment_integration"
+./claude-rag-lite.sh query "payment stripe webhook"  # Check existing implementations
+./claude-rag-lite.sh query "error handling retry"    # Check patterns
+./claude-rag-lite.sh query "payment"                 # Broad search for any related work
 
-# Research existing patterns
-./claude-rag-lite.sh query "payment processing stripe"
+# Step 2: Build plan incorporating all findings
+./scratchpad.sh append plan_payment_*.md "Found Stripe webhook pattern in patterns/webhook.md"
+./scratchpad.sh append plan_payment_*.md "Retry logic from patterns/retry_strategy.md"
+./scratchpad.sh append plan_payment_*.md "Previous payment debug in debug_history/payment_fix.md"
 
-# View and edit plan
-./scratchpad.sh view plan_payment_integration_*.md
-./scratchpad.sh edit plan_payment_integration_*.md
+# Step 3: Complete planning phase
+./scratchpad.sh complete plan_payment_*.md
+./claude-rag-lite.sh build  # Plan becomes searchable knowledge
 ```
 
 ## Best Practices
 
-### When to Use Each Tool
+### How Tools Work Together
 
-**Use scratchpad.sh when:**
-- Starting any new task or investigation
-- Debugging issues
-- Planning implementations
-- Taking temporary notes during research
+**Integrated Usage Pattern:**
+1. **Always start with both tools:**
+   - Create scratchpad for current work: `./scratchpad.sh new`
+   - Query existing knowledge: `./claude-rag-lite.sh query`
+   - Append findings to scratchpad as you work
 
-**Use claude-rag-lite.sh when:**
-- Searching for existing solutions or patterns
-- Looking up previous debug sessions
-- Finding code examples or implementations
-- Checking if a problem has been solved before
+2. **During work:**
+   - Continuously search RAG for relevant patterns/solutions
+   - Document discoveries in active scratchpad
+   - Cross-reference with existing knowledge
 
-### Knowledge Organization Guidelines
+3. **After completion:**
+   - File scratchpad to appropriate directory
+   - Rebuild RAG index to include new knowledge
+   - Future tasks can now build on this work
 
-1. **Always start with a scratchpad** - Don't work directly in the knowledge base
-2. **File completed work properly** - Use the `complete` command for filing guidance
-3. **Keep the index updated** - Run `claude-rag-lite.sh build` after adding new documents
-4. **Use descriptive filenames** - Include context in scratchpad descriptions
-5. **Archive don't delete** - Move old scratchpads to archive instead of deleting
+### Knowledge Building Guidelines
+
+1. **Start with BOTH tools** - Create scratchpad AND search existing knowledge
+2. **Build on what exists** - Never recreate solutions, extend them
+3. **Document connections** - Note which existing docs helped solve current task
+4. **Close the loop** - Always file scratchpad and rebuild index
+5. **Think long-term** - Today's scratchpad is tomorrow's searchable solution
+6. **Cross-reference liberally** - Link related knowledge in your notes
 
 ### Filing Guidelines by Directory
 
