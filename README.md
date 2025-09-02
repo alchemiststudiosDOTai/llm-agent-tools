@@ -41,15 +41,18 @@ uv pip install -r pyproject.toml
 Manages temporary notes and working memory for AI agents during task execution.
 
 **Commands:**
-- `new [type] [description]` - Create new scratchpad (types: task, debug, plan, general)
-- `list [filter]` - List active scratchpads
-- `view <filename>` - View scratchpad content
-- `edit <filename>` - Edit in default editor
-- `append <filename> <text>` - Add text to existing scratchpad
-- `complete <filename>` - Display filing instructions
-- `filed <filename>` - Mark as filed and remove
-- `archive <filename>` - Move to archive
-- `search <term>` - Search all scratchpads
+- `new [type] [description]` – Create scratchpad (types: task, debug, plan, general)
+- `list [filter]` – List active scratchpads
+- `view <filename>` – View scratchpad content
+- `edit <filename>` – Edit in default editor
+- `append <filename> <text>` – Add text to existing scratchpad
+- `complete <filename>` – Display filing instructions
+- `filed <filename>` – Mark as filed and remove
+- `archive <filename>` – Move to archive
+- `search <term>` – Search all scratchpads
+- `scaffold <task_name>` – Create research/plan/implement files from templates
+- `fileto <filename> <dir> [new_name]` – Move an active pad into `.claude/<dir>/`
+- `delta <title> [summary]` – Create a timestamped change log in `.claude/delta/`
 
 ### 2. claude-rag-lite.sh - Knowledge Retrieval System
 
@@ -114,6 +117,65 @@ flowchart TD
     2. Update RAG index: ./claude-rag-lite.sh build
     3. Knowledge now searchable for future tasks`"]
     --> End([Knowledge Base Enhanced])
+```
+
+## Standardized Flow (Research → Plan → Implement)
+
+Use the provided templates and helper commands to keep every task consistent and searchable.
+
+1) Scaffold task files
+
+```bash
+./scratchpad.sh scaffold my_feature
+# Creates in .claude/scratchpad/active/:
+#   research_my_feature.md, plan_my_feature.md, implement_my_feature.md
+```
+
+2) Research
+- Run RAG and local search to gather prior work.
+- Record findings and gaps in `research_<task>.md`.
+
+```bash
+./claude-rag-lite.sh query "<term>"    # If uv is available
+# Fallback (no-uv environments):
+python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query "<term>" --format text
+```
+
+3) Plan
+- Write explicit steps and acceptance criteria in `plan_<task>.md`.
+
+4) Implement
+- Make incremental changes and log them in `implement_<task>.md`.
+
+5) File knowledge and change logs
+- Move final notes into the right knowledge folders using `fileto`.
+
+```bash
+# Examples
+./scratchpad.sh fileto research_my_feature.md metadata
+./scratchpad.sh fileto plan_my_feature.md patterns "my_feature_plan"
+./scratchpad.sh delta "My Feature" "context or short summary here"
+```
+
+6) Rebuild index and validate
+- Update the FTS5 index so new docs are searchable.
+
+```bash
+# Preferred (if uv works in your environment):
+./claude-rag-lite.sh build
+
+# Fallback without uv:
+python3 rag_modules/indexer.py \
+  --claude-dir .claude \
+  --db-path .claude/.rag/claude_knowledge.db \
+  --incremental
+```
+
+7) Search to confirm
+
+```bash
+./claude-rag-lite.sh query "my_feature" 5 || \
+python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query "my_feature" --format text
 ```
 
 ## Usage Examples
@@ -253,10 +315,65 @@ Configure indexing behavior by modifying `rag_modules/indexer.py`:
 3. Update relevant documentation in `.claude/patterns/` or `.claude/qa/`
 4. Rebuild index after changes: `./claude-rag-lite.sh build`
 
-## License
+flowchart TD
+    A([New Task]) --> Research
 
-[Specify your license here]
+    %% Research Phase
+    Research["`**RESEARCH PHASE**  
+    - scratchpad.sh new task  
+    - Use RAG first: claude-rag-lite.sh query  
+    - If low results → fallback: grep KB`"]
+    --> Plan
 
-## Acknowledgments
+    %% Plan Phase
+    Plan["`**PLAN PHASE**  
+    - Summarize into plan.md  
+    - Explicit files, steps, tests  
+    - Human review before coding`"]
+    --> Implement
 
-Built for efficient LLM agent workflows with emphasis on knowledge persistence and retrieval.
+    %% Implement Phase
+    Implement["`**IMPLEMENT PHASE**  
+    - Code in small steps  
+    - After each: run tests, update delta/progress.md  
+    - Compact logs only`"]
+    --> Checkpoint{"Next step or Done?"}
+
+    Checkpoint -->|New info| Research
+    Checkpoint -->|Task done| End([Task Complete])
+
+    %% RAG & KB Logic
+    subgraph Retrieval["Retrieval Logic"]
+        RAG["claude-rag-lite.sh query (Compact FTS5)"]:::r
+        GREP["Fallback: grep / search entire KB"]:::r
+    end
+
+    Research --> RAG
+    RAG -->|Enough info| Plan
+    RAG -->|Not enough| GREP
+    GREP --> Plan
+
+    %% Knowledge Base
+    subgraph CLAUDE[".claude Knowledge Base"]
+        metadata[metadata/]:::k
+        delta[delta/]:::k
+        qa[qa/]:::k
+        patterns[patterns/]:::k
+        debug[debug_history/]:::k
+        cheatsheets[cheatsheets/]:::k
+        anchors[anchors/]:::k
+    end
+
+    metadata --> Research
+    delta --> Implement
+    patterns --> Plan
+    qa --> Research
+    debug --> Research
+    cheatsheets --> Plan
+    anchors --> Implement
+
+    %% Classes
+    classDef k fill:#1976d2,stroke:#0d47a1,stroke-width:2px,color:#fff
+    classDef r fill:#388e3c,stroke:#1b5e20,stroke-width:2px,color:#fff
+    classDef phase fill:#f57c00,stroke:#e65100,stroke-width:2px,color:#fff
+ 

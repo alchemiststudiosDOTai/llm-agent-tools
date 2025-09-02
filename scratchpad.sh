@@ -275,6 +275,52 @@ archive_scratchpad() {
     fi
 }
 
+# Function to move an active scratchpad to a target .claude directory
+file_to_directory() {
+    local filename="${1}"
+    local target_dir="${2}"
+    local new_name="${3:-}"
+
+    if [[ -z "${filename}" || -z "${target_dir}" ]]; then
+        print_status "${RED}" "Error: usage fileto <filename> <dir> [new_name]"
+        return 1
+    fi
+
+    local src_path="${SCRATCHPAD_DIR}/active/${filename}"
+    if [[ ! -f "${src_path}" ]]; then
+        src_path="${SCRATCHPAD_DIR}/active/${filename}.md"
+    fi
+    if [[ ! -f "${src_path}" ]]; then
+        print_status "${RED}" "Scratchpad not found: ${filename}"
+        return 1
+    fi
+
+    # Sanitize and validate target dir against known categories
+    local safe_dir=$(echo "${target_dir}" | tr -cd 'A-Za-z0-9_/-')
+    case "${safe_dir}" in
+        metadata|code_index|debug_history|patterns|qa|cheatsheets|delta|anchors)
+            ;;
+        *)
+            print_status "${RED}" "Error: target dir must be one of: metadata, code_index, debug_history, patterns, qa, cheatsheets, delta, anchors"
+            return 1
+            ;;
+    esac
+    local dest_dir="${CLAUDE_DIR}/${safe_dir}"
+    mkdir -p "${dest_dir}"
+
+    local base_name
+    if [[ -n "${new_name}" ]]; then
+        base_name=$(echo "${new_name}" | tr ' ' '_' | tr -cd 'A-Za-z0-9_-')
+    else
+        base_name=$(basename "${src_path}")
+        base_name="${base_name%.md}"
+    fi
+    local dest_path="${dest_dir}/${base_name}.md"
+
+    mv "${src_path}" "${dest_path}"
+    print_status "${GREEN}" "Moved to: ${dest_path}"
+}
+
 # Function to search scratchpads
 search_scratchpads() {
     local term="${1}"
@@ -322,6 +368,13 @@ Commands:
   search <term>               Search all scratchpads for term
   
   help                        Show this help message
+  
+  scaffold <task_name>        Create research/plan/implement files from templates
+  
+  fileto <filename> <dir> [new]
+                             Move active pad to .claude/<dir>/ (optionally rename)
+  
+  delta <title> [summary]     Create a delta change log with timestamp
 
 Examples:
   $(basename "$0") new task "implement user authentication"
@@ -333,7 +386,7 @@ Examples:
   $(basename "$0") search "error handling"
 
 Environment Variables:
-  EDITOR                      Editor to use (default: nano)
+  EDITOR                      Editor to use (default: nvim)
   CLAUDE_AGENT_ID            Agent identifier for tracking
 
 EOF
@@ -419,7 +472,88 @@ main() {
         help)
             show_usage
             ;;
-            
+        
+        scaffold)
+            if [[ -z "${1:-}" ]]; then
+                print_status "${RED}" "Error: task name required"
+                exit 1
+            fi
+            local task_name="$1"
+            local safe_task=$(echo "${task_name}" | tr ' ' '_' | tr -cd '[:alnum:]_-')
+            local date_str=$(date +"%Y-%m-%d %H:%M:%S")
+            local owner_str="${CLAUDE_AGENT_ID:-user}"
+            local tpl_dir="${SCRATCHPAD_DIR}/templates"
+            local out_dir="${SCRATCHPAD_DIR}/active"
+
+            mkdir -p "${out_dir}"
+
+            # Render helper
+            render_tpl() {
+                local src="$1"; local dest="$2"
+                if [[ ! -f "${src}" ]]; then
+                    print_status "${RED}" "Missing template: ${src}"
+                    exit 1
+                fi
+                sed -e "s|<TASK_NAME>|${task_name}|g" \
+                    -e "s|{{date}}|${date_str}|g" \
+                    -e "s|{{agent or user}}|${owner_str}|g" \
+                    "${src}" > "${dest}"
+                print_status "${GREEN}" "Created: $(basename "${dest}")"
+            }
+
+            render_tpl "${tpl_dir}/research.template.md"   "${out_dir}/research_${safe_task}.md"
+            render_tpl "${tpl_dir}/plan.template.md"        "${out_dir}/plan_${safe_task}.md"
+            render_tpl "${tpl_dir}/implement.template.md"   "${out_dir}/implement_${safe_task}.md"
+
+            echo "Path: ${out_dir}/research_${safe_task}.md"
+            echo "Path: ${out_dir}/plan_${safe_task}.md"
+            echo "Path: ${out_dir}/implement_${safe_task}.md"
+            ;;
+        
+        fileto)
+            if [[ -z "${1:-}" || -z "${2:-}" ]]; then
+                print_status "${RED}" "Error: usage fileto <filename> <dir> [new_name]"
+                exit 1
+            fi
+            file_to_directory "$1" "$2" "${3:-}"
+            ;;
+        
+        delta)
+            if [[ -z "${1:-}" ]]; then
+                print_status "${RED}" "Error: title required"
+                exit 1
+            fi
+            local title="$1"; shift || true
+            local summary="${*:-}"
+            local safe_title=$(echo "${title}" | tr ' ' '_' | tr -cd '[:alnum:]_-')
+            local date_str=$(date +"%Y-%m-%d %H:%M:%S")
+            local delta_dir="${CLAUDE_DIR}/delta"
+            mkdir -p "${delta_dir}"
+            local filepath="${delta_dir}/${safe_title}_${TIMESTAMP}.md"
+            cat > "${filepath}" << EOF
+# Change Log – ${title}
+
+- Date: ${date_str}
+- Context: ${summary}
+
+## Summary
+- <!-- Add key changes here -->
+
+## Commands
+```bash
+# <!-- Add relevant commands here -->
+```
+
+## Result
+- <!-- Add results/metrics here -->
+
+## Notes
+- <!-- Optional notes -->
+EOF
+            print_status "${GREEN}" "Created delta: $(basename "${filepath}")"
+            echo "Path: ${filepath}"
+            ;;
+        
         *)
             print_status "${RED}" "Unknown command: ${command}"
             show_usage
