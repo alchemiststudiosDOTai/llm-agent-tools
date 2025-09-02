@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "anchors": [
+    {
+      "id": "8ec9a00bfd09b3190ac6b22251dbb1aa95a0579d",
+      "path": "README.md",
+      "kind": "file",
+      "symbol": null,
+      "since": "1ff87a6c1adf491ba1c94e713275868154b69eb8",
+      "status": "active"
+    },
+    {
+      "id": "f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59",
+      "path": "scratchpad.sh",
+      "kind": "file",
+      "symbol": null,
+      "since": "88a1d9fc3cb5014655ae42c52d10018fc705fc01",
+      "status": "active"
+    },
+    {
+      "id": "4e1243bd22c66e76c2ba9eddc1f91394e57f9f83",
+      "path": "install.sh",
+      "kind": "file",
+      "symbol": null,
+      "since": "0b8a66f61d7870fcc13e93b11f1e77f51a1d1e09",
+      "status": "active"
+    },
+    {
+      "id": "d033e22ae348aeb5660fc2140aec35850c4da997",
+      "path": "claude-rag-lite.sh",
+      "kind": "file",
+      "symbol": null,
+      "since": "88a1d9fc3cb5014655ae42c52d10018fc705fc01",
+      "status": "active"
+    },
+    {
+      "id": "5d41402abc4b2a76b9719d911017c592",
+      "path": "rag_modules/indexer.py",
+      "kind": "file",
+      "symbol": null,
+      "since": "88a1d9fc3cb5014655ae42c52d10018fc705fc01",
+      "status": "active"
+    },
+    {
+      "id": "28b5d5e4c7b63dc9f8e7e8b5f8f8b9c7",
+      "path": "rag_modules/search.py",
+      "kind": "file",
+      "symbol": null,
+      "since": "88a1d9fc3cb5014655ae42c52d10018fc705fc01",
+      "status": "active"
+    }
+  ]
+}

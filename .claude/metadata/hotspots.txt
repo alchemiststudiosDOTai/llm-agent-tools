@@ -1,0 +1,16 @@
+# High-Churn Files (Last 3 Months)
+# Format: <changes> <file>
+
+919 add
+746 README.md
+633 install.sh
+581 scratchpad.sh
+270 rag_modules/indexer.py
+245 claude-rag-lite.sh
+231 rag_modules/search.py
+
+# Top Modified Components
+1. scratchpad.sh - Core workflow tool
+2. README.md - Documentation hub
+3. install.sh - Setup automation
+4. RAG modules - Knowledge indexing
