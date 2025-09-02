@@ -2,30 +2,55 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL WORKFLOW THAT MUST ALWAYS BE FOLLOWED
+
+The scratchpad and RAG tools create a knowledge-building system. **ALWAYS follow this workflow:**
+
+```bash
+# Start any task
+./scratchpad.sh scaffold [task_name]
+./claude-rag-lite.sh query "[related terms]"
+
+# During work
+./scratchpad.sh append [research|plan|implement]_*.md "progress note"
+./claude-rag-lite.sh query "error or pattern I need"
+
+# Complete work
+./scratchpad.sh fileto [file] [directory] [new_name]
+./scratchpad.sh delta "Feature Name" "what changed"
+./claude-rag-lite.sh build
+
+# Verify it's searchable
+./claude-rag-lite.sh query "what I just built"
+```
+
+**This cycle ensures every piece of work becomes reusable knowledge for the entire team.**
+This keeps a system for developers and other agents in the future and is a separate system from main project documentation.
+
 ## Project Overview
 
 This is an integrated toolkit for LLM agents that combines temporary workspace management (scratchpad) with persistent knowledge retrieval (RAG). The tools are designed to work together in a continuous cycle where each task builds on previous knowledge.
 
-## Critical Workflow - ALWAYS USE BOTH TOOLS TOGETHER
+## The Three-Phase Workflow
 
-The scratchpad and RAG tools are NOT alternatives - they work in conjunction:
+### 1. RESEARCH PHASE
+- Create scaffold: `./scratchpad.sh scaffold [task_name]`
+- Search ALL existing knowledge first
+- Document what you find in `research_*.md`
+- Identify gaps and existing patterns
 
-1. **Start every task with BOTH:**
-   ```bash
-   ./scratchpad.sh new [type] "description"  # Create workspace
-   ./claude-rag-lite.sh query "search terms"  # Search existing knowledge
-   ```
+### 2. PLAN PHASE  
+- Based on research, create explicit plan in `plan_*.md`
+- List specific files, steps, and acceptance criteria
+- Reference existing patterns found during research
 
-2. **During work:** Continuously append findings to scratchpad and search RAG for patterns
+### 3. IMPLEMENT PHASE
+- Execute the plan step by step
+- Document progress and decisions in `implement_*.md`
+- Search for solutions when hitting issues
+- Test after each component
 
-3. **Complete the cycle:**
-   ```bash
-   ./scratchpad.sh complete [filename]  # Get filing instructions
-   ./scratchpad.sh filed [filename]     # Mark as filed
-   ./claude-rag-lite.sh build          # Update RAG index
-   ```
-
-## Commands
+## Commands Reference
 
 ### Knowledge Base Management
 ```bash
@@ -45,6 +70,9 @@ The scratchpad and RAG tools are NOT alternatives - they work in conjunction:
 # Create scratchpad (types: task, debug, plan, general)
 ./scratchpad.sh new [type] "description"
 
+# Scaffold creates research/plan/implement structure
+./scratchpad.sh scaffold [task_name]
+
 # Work with scratchpads
 ./scratchpad.sh list [filter]
 ./scratchpad.sh view <filename>
@@ -52,7 +80,9 @@ The scratchpad and RAG tools are NOT alternatives - they work in conjunction:
 
 # Complete and file
 ./scratchpad.sh complete <filename>  # Shows filing instructions
-./scratchpad.sh filed <filename>     # Removes after filing
+./scratchpad.sh fileto <filename> <dir> [new_name]  # File to .claude/[dir]/
+./scratchpad.sh filed <filename>     # Mark as filed and remove
+./scratchpad.sh delta <title> [summary]  # Create timestamped change log
 ```
 
 ### Python Environment
@@ -99,13 +129,14 @@ scratchpad (temp work) → .claude/[category]/ → RAG index → searchable know
 4. **Snippet Length** - Controlled by MAX_SNIPPET_LENGTH env var (default: 500)
 5. **Python Stdlib Only** - No pip packages needed, uses only Python standard library
 
-## When Working on Tasks
+## Best Practices
 
-1. ALWAYS create a scratchpad first
-2. ALWAYS search existing knowledge before implementing
-3. Document connections to existing solutions in scratchpad
-4. File completed work to appropriate .claude/ directory
-5. Rebuild RAG index after filing to make knowledge searchable
+1. **ALWAYS search before coding** - Someone may have solved it already
+2. **Document as you go** - Append to scratchpads during work, not after
+3. **File knowledge immediately** - Don't let scratchpads pile up
+4. **Use meaningful names** - When filing with `fileto`, use descriptive names
+5. **Create debug entries** - Document every bug fix for future reference
+6. **Update the index** - Run `./claude-rag-lite.sh build` after filing
 
 ## Environment Variables
 - `MAX_SNIPPET_LENGTH` - RAG snippet size (default: 500)
