@@ -9,6 +9,7 @@ An integrated toolkit for LLM agents that combines temporary workspace managemen
 - **Persistent Knowledge Building**: Every task contributes to growing knowledge base
 - **Fast Retrieval**: SQLite FTS5 enables instant access to all past work
 - **Structured Organization**: Clear pipeline from temporary work to permanent knowledge
+- **Project Optimization**: `prompt.md` template for ongoing large projects with established document knowledge bases to make repositories Claude/LLM-friendly
 
 ## Installation
 
@@ -105,7 +106,18 @@ The uninstaller will:
 
 ## Core Tools
 
-### 1. scratchpad.sh - Temporary Workspace Management
+### 1. prompt.md - Repository Optimizer for Ongoing Projects
+
+A specialized template for large, ongoing projects with established document knowledge bases. This prompt helps make repositories Claude/LLM-friendly by:
+- Setting a baseline for the current state of the project
+- Crawling git history, PRs, issues, and releases to build comprehensive metadata
+- Creating and maintaining `.claude/` directory structure with proper categorization
+- Generating anchor IDs for important code locations
+- Building idempotent scripts to keep the knowledge base updated
+
+Use `prompt.md` when you need to optimize an existing repository for LLM interaction and maintain its knowledge base over time.
+
+### 2. scratchpad.sh - Temporary Workspace Management
 
 Manages temporary notes and working memory for AI agents during task execution.
 
@@ -123,7 +135,7 @@ Manages temporary notes and working memory for AI agents during task execution.
 - `fileto <filename> <dir> [new_name]` – Move an active pad into `.claude/<dir>/`
 - `delta <title> [summary]` – Create a timestamped change log in `.claude/delta/`
 
-### 2. claude-rag-lite.sh - Knowledge Retrieval System
+### 3. claude-rag-lite.sh - Knowledge Retrieval System
 
 Fast full-text search using SQLite FTS5 for efficient knowledge base queries.
 
@@ -132,7 +144,7 @@ Fast full-text search using SQLite FTS5 for efficient knowledge base queries.
 - `query <search-terms>` - Search the knowledge base
 - `stats` - Display index statistics
 
-### 3. Knowledge Base Structure (.claude/)
+### 4. Knowledge Base Structure (.claude/)
 
 Organized directory structure for persistent knowledge storage:
 
