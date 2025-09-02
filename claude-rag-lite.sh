@@ -7,7 +7,14 @@ set -euo pipefail
 
 # Configuration
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly CLAUDE_DIR="${SCRIPT_DIR}/.claude"
+
+# Source config file if it exists
+if [[ -f "${SCRIPT_DIR}/.llm-tools.conf" ]]; then
+    source "${SCRIPT_DIR}/.llm-tools.conf"
+fi
+
+# Allow environment variable override, fallback to config, then default
+readonly CLAUDE_DIR="${CLAUDE_DIR:-${SCRIPT_DIR}/.claude}"
 readonly DB_PATH="${CLAUDE_DIR}/.rag/claude_knowledge.db"
 readonly PYTHON_SCRIPTS="${SCRIPT_DIR}/rag_modules"
 readonly MAX_SNIPPET_LENGTH="${MAX_SNIPPET_LENGTH:-500}"

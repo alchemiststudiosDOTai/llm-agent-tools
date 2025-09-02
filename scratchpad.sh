@@ -6,7 +6,16 @@
 set -euo pipefail
 
 # Configuration
-readonly CLAUDE_DIR=".claude"
+# Get script directory
+readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Source config file if it exists
+if [[ -f "${SCRIPT_DIR}/.llm-tools.conf" ]]; then
+    source "${SCRIPT_DIR}/.llm-tools.conf"
+fi
+
+# Allow environment variable override, fallback to config, then default
+readonly CLAUDE_DIR="${CLAUDE_DIR:-${SCRIPT_DIR}/.claude}"
 readonly SCRATCHPAD_DIR="${CLAUDE_DIR}/scratchpad"
 readonly TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 readonly DEFAULT_EDITOR="${EDITOR:-nano}"

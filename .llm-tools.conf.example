@@ -1,0 +1,92 @@
+# LLM Agent Tools Configuration Template
+# Copy this file to .llm-tools.conf and customize as needed
+# This file is automatically sourced by scratchpad.sh and claude-rag-lite.sh
+
+# ============================================================================
+# DIRECTORY CONFIGURATION
+# ============================================================================
+
+# Custom Claude directory path (default: .claude in script directory)
+# Uncomment and modify to use a different location
+# export CLAUDE_DIR="/path/to/your/claude/directory"
+
+# Alternative: Use a directory relative to the scripts
+# export CLAUDE_DIR="${SCRIPT_DIR}/.llm-agent-tools"
+
+# ============================================================================
+# SCRATCHPAD CONFIGURATION
+# ============================================================================
+
+# Default editor for scratchpad editing (default: nano)
+# export EDITOR="vim"
+
+# Agent identifier for tracking in scratchpads
+# export CLAUDE_AGENT_ID="my-agent"
+
+# ============================================================================
+# RAG CONFIGURATION
+# ============================================================================
+
+# Maximum snippet length for RAG results (default: 500)
+# export MAX_SNIPPET_LENGTH=800
+
+# Default number of results to return (default: 10)
+# export DEFAULT_LIMIT=20
+
+# ============================================================================
+# PYTHON ENVIRONMENT
+# ============================================================================
+
+# Python interpreter to use (default: python3)
+# export PYTHON_CMD="python3.11"
+
+# Use virtual environment (uncomment to activate before running Python)
+# export VENV_PATH="${SCRIPT_DIR}/venv"
+# [[ -f "${VENV_PATH}/bin/activate" ]] && source "${VENV_PATH}/bin/activate"
+
+# ============================================================================
+# LOGGING AND DEBUG
+# ============================================================================
+
+# Enable debug output (uncomment for troubleshooting)
+# export DEBUG=1
+
+# Log file location (default: ${CLAUDE_DIR}/scratchpad_log.txt)
+# export LOG_FILE="${CLAUDE_DIR}/agent_activity.log"
+
+# ============================================================================
+# CUSTOM FUNCTIONS
+# ============================================================================
+
+# You can define custom bash functions here that will be available
+# in both scratchpad.sh and claude-rag-lite.sh
+
+# Example: Custom function to create timestamped backups
+# backup_claude_dir() {
+#     local backup_dir="${CLAUDE_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
+#     cp -r "${CLAUDE_DIR}" "${backup_dir}"
+#     echo "Backup created: ${backup_dir}"
+# }
+
+# Example: Custom function to count knowledge base entries
+# count_kb_entries() {
+#     find "${CLAUDE_DIR}" -type f -name "*.md" | wc -l
+# }
+
+# ============================================================================
+# HOOKS AND EXTENSIONS
+# ============================================================================
+
+# Pre-scratchpad creation hook
+# export PRE_SCRATCHPAD_HOOK="echo 'Creating new scratchpad...'"
+
+# Post-scratchpad filing hook
+# export POST_FILE_HOOK="./claude-rag-lite.sh build"
+
+# ============================================================================
+# NOTES
+# ============================================================================
+# - All paths can be absolute or relative
+# - Environment variables set here override defaults in the scripts
+# - This file is sourced as bash, so all bash syntax is valid
+# - Changes take effect the next time you run the scripts
