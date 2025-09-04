@@ -1,0 +1,68 @@
+language: typescript
+rules:
+  - id: if-false-dead
+    message: "[code=if-false-dead][sev=warning] Dead block guarded by false"
+    severity: warning
+    pattern: |
+      if (false) {
+        $STMTS
+      }
+
+  - id: while-false-dead
+    message: "[code=while-false-dead][sev=warning] Dead loop guarded by false"
+    severity: warning
+    pattern: |
+      while (false) {
+        $STMTS
+      }
+
+  - id: unreachable-after-return
+    message: "[code=unreachable-after-return][sev=warning] Unreachable code after return"
+    severity: warning
+    pattern: |
+      function $FN($ARGS) {
+        ...
+        return $VAL
+        $UNREACH
+      }
+
+  - id: unreachable-after-throw
+    message: "[code=unreachable-after-throw][sev=warning] Unreachable code after throw"
+    severity: warning
+    pattern: |
+      function $FN($ARGS) {
+        ...
+        throw $ERR
+        $UNREACH
+      }
+
+  - id: unreachable-after-break
+    message: "[code=unreachable-after-break][sev=warning] Unreachable code after break"
+    severity: warning
+    pattern: |
+      for (let $I of $ITER) {
+        ...
+        break
+        $UNREACH
+      }
+
+  - id: unreachable-after-continue
+    message: "[code=unreachable-after-continue][sev=warning] Unreachable code after continue"
+    severity: warning
+    pattern: |
+      while ($COND) {
+        ...
+        continue
+        $UNREACH
+      }
+
+  - id: unreachable-after-process-exit
+    message: "[code=unreachable-after-process-exit][sev=warning] Unreachable code after process.exit(...)"
+    severity: warning
+    pattern: |
+      function $FN($ARGS) {
+        ...
+        process.exit($CODE)
+        $UNREACH
+      }
+

@@ -1,0 +1,61 @@
+language: python
+rules:
+  - id: if-false-dead
+    message: "[code=if-false-dead][sev=warning] Dead block guarded by False"
+    severity: warning
+    pattern: |
+      if False:
+        $STMTS
+
+  - id: while-false-dead
+    message: "[code=while-false-dead][sev=warning] Dead loop guarded by False"
+    severity: warning
+    pattern: |
+      while False:
+        $STMTS
+
+  - id: unreachable-after-return
+    message: "[code=unreachable-after-return][sev=warning] Unreachable code after return"
+    severity: warning
+    pattern: |
+      def $FN($ARGS):
+        ...
+        return $X
+        $UNREACH
+
+  - id: unreachable-after-raise
+    message: "[code=unreachable-after-raise][sev=warning] Unreachable code after raise"
+    severity: warning
+    pattern: |
+      def $FN($ARGS):
+        ...
+        raise $E
+        $UNREACH
+
+  - id: unreachable-after-break
+    message: "[code=unreachable-after-break][sev=warning] Unreachable code after break"
+    severity: warning
+    pattern: |
+      for $I in $ITER:
+        ...
+        break
+        $UNREACH
+
+  - id: unreachable-after-continue
+    message: "[code=unreachable-after-continue][sev=warning] Unreachable code after continue"
+    severity: warning
+    pattern: |
+      while $COND:
+        ...
+        continue
+        $UNREACH
+
+  - id: unreachable-after-sys-exit
+    message: "[code=unreachable-after-sys-exit][sev=warning] Unreachable code after sys.exit()"
+    severity: warning
+    pattern: |
+      def $FN($ARGS):
+        ...
+        sys.exit($CODE)
+        $UNREACH
+

@@ -1,0 +1,18 @@
+# Lines are substrings to filter out from tool outputs.
+# Empty lines and lines starting with '#' are ignored.
+
+# Example: ignore vendored paths
+node_modules/
+dist/
+build/
+.venv/
+
+# Example: ignore test files or fixtures
+/tests/
+/__tests__/
+fixtures/
+
+# Example: ignore specific messages
+# Unreachable code after return (false positive in generated file)
+generated.py:.*Unreachable code after return
+
