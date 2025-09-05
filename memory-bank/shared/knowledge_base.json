@@ -1,0 +1,9 @@
+{
+  "jwt.access_token.expiry": {
+    "value": "15 minutes for access tokens",
+    "created": "2025-09-05T19:03:48Z",
+    "updated": "2025-09-05T19:03:48Z",
+    "agent": "test-agent",
+    "tags": []
+  }
+}
