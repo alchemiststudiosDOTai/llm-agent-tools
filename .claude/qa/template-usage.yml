@@ -1,6 +1,0 @@
-id: qa-template-01
-anchors: ["f1f836cb4ea6efb2a0b1b99f41ad8b103eff4b59"]
-problem: "Templates not being created with scaffold command"
-cause: "Missing template directory or incorrect path resolution"
-fix: "commit 919c8c7 - added templates under .claude/scratchpad/templates/"
-notes: "Scaffold command now creates research/plan/implement files from templates"
