@@ -432,7 +432,7 @@ EOF
     fi
     
     # Make scripts executable
-    chmod +x "$SCRIPT_DIR/scratchpad.sh" 2>/dev/null || true
+    chmod +x "$SCRIPT_DIR/bash-tools/scratchpad.sh" 2>/dev/null || true
     chmod +x "$SCRIPT_DIR/claude-rag-lite.sh" 2>/dev/null || true
     
     print_success "Scripts updated"
@@ -581,7 +581,7 @@ show_post_install() {
     
     echo -e "${BOLD}Quick Start:${NC}\n"
     echo "1. Create a new scratchpad:"
-    echo "   ./scratchpad.sh new task 'my_first_task'"
+    echo "   ./bash-tools/scratchpad.sh new task 'my_first_task'"
     echo
     echo "2. Build the knowledge base index:"
     echo "   ./claude-rag-lite.sh build"

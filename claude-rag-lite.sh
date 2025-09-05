@@ -13,8 +13,16 @@ if [[ -f "${SCRIPT_DIR}/.llm-tools.conf" ]]; then
     source "${SCRIPT_DIR}/.llm-tools.conf"
 fi
 
-# Allow environment variable override, fallback to config, then default
-readonly CLAUDE_DIR="${CLAUDE_DIR:-${SCRIPT_DIR}/.claude}"
+# Resolve CLAUDE_DIR
+# Priority: env/loaded var -> $HOME/.claude if exists -> repo .claude
+if [[ -z "${CLAUDE_DIR:-}" ]]; then
+  if [[ -n "${HOME:-}" ]]; then
+    CLAUDE_DIR="${HOME}/.claude"
+  else
+    CLAUDE_DIR="${SCRIPT_DIR}/.claude"
+  fi
+fi
+readonly CLAUDE_DIR
 readonly DB_PATH="${CLAUDE_DIR}/.rag/claude_knowledge.db"
 readonly PYTHON_SCRIPTS="${SCRIPT_DIR}/rag_modules"
 readonly MAX_SNIPPET_LENGTH="${MAX_SNIPPET_LENGTH:-500}"

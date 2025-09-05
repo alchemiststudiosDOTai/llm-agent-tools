@@ -31,6 +31,24 @@ The installer will:
 - Set up the complete knowledge base structure
 - Install Python dependencies if `uv` is available
 
+### Zero-Config Quick Start (Recommended)
+
+- After cloning, you can run the tools immediately — no config needed.
+- By default, they create and use your personal knowledge base at `$HOME/.claude`.
+- Scratchpads live under `$HOME/.claude/scratchpad/active/` until you file them.
+
+```bash
+# Create task scaffolding (research/plan/implement pads)
+./bash-tools/scratchpad.sh scaffold my_feature
+
+# Work and file notes into your KB categories
+./bash-tools/scratchpad.sh fileto plan_my_feature.md patterns my_feature_plan
+
+# Build the RAG index and search
+./claude-rag-lite.sh build
+./claude-rag-lite.sh query "my_feature" 10 text
+```
+
 ### Installation Options
 
 The installer handles various scenarios intelligently:
@@ -50,13 +68,13 @@ git clone https://github.com/yourusername/llm-agent-tools.git
 cd llm-agent-tools
 
 # Make scripts executable
-chmod +x scratchpad.sh claude-rag-lite.sh
+chmod +x bash-tools/scratchpad.sh claude-rag-lite.sh
 
 # Install Python dependencies
 uv pip install -r pyproject.toml
 
-# Initialize knowledge base structure
-./scratchpad.sh new general "initial_setup"
+# Initialize knowledge base structure (auto-creates $HOME/.claude if missing)
+./bash-tools/scratchpad.sh new general "initial_setup"
 ```
 
 ### Custom Directory Configuration
@@ -64,9 +82,9 @@ uv pip install -r pyproject.toml
 You can use a custom directory instead of `.claude`:
 
 ```bash
-# Using environment variable
+# Using environment variable (optional — defaults to $HOME/.claude)
 export CLAUDE_DIR="/path/to/your/knowledge/base"
-./scratchpad.sh new task "my_task"
+./bash-tools/scratchpad.sh new task "my_task"
 
 # Using configuration file
 cp .llm-tools.conf.example .llm-tools.conf
@@ -135,6 +153,10 @@ Manages temporary notes and working memory for AI agents during task execution.
 - `fileto <filename> <dir> [new_name]` – Move an active pad into `.claude/<dir>/`
 - `delta <title> [summary]` – Create a timestamped change log in `.claude/delta/`
 
+Notes:
+- By default, files are created under `$HOME/.claude`. Override with `CLAUDE_DIR` if desired.
+- A legacy wrapper `./scratchpad.sh` forwards to `./bash-tools/scratchpad.sh`.
+
 ### 3. claude-rag-lite.sh - Knowledge Retrieval System
 
 Fast full-text search using SQLite FTS5 for efficient knowledge base queries.
@@ -172,7 +194,7 @@ flowchart TD
     Start([New Task]) --> Research
     
     Research["`**RESEARCH PHASE**
-    1. Create scratchpad: ./scratchpad.sh new task 'description'
+    1. Create scratchpad: ./bash-tools/scratchpad.sh new task 'description'
     2. Query existing knowledge: ./claude-rag-lite.sh query 'terms'
     3. Document findings in scratchpad
     4. Build on what exists, don't recreate`"]
@@ -194,7 +216,7 @@ flowchart TD
     Review -->|Yes| Complete
     
     Complete["`**COMPLETION**
-    1. File scratchpad to appropriate .claude/ directory
+    1. File scratchpad to appropriate .claude/ directory (default $HOME/.claude)
     2. Update RAG index: ./claude-rag-lite.sh build
     3. Knowledge now searchable for future tasks`"]
     --> End([Knowledge Base Enhanced])
@@ -207,7 +229,7 @@ Use the provided templates and helper commands to keep every task consistent and
 1) Scaffold task files
 
 ```bash
-./scratchpad.sh scaffold my_feature
+./bash-tools/scratchpad.sh scaffold my_feature
 # Creates in .claude/scratchpad/active/:
 #   research_my_feature.md, plan_my_feature.md, implement_my_feature.md
 ```
@@ -219,7 +241,10 @@ Use the provided templates and helper commands to keep every task consistent and
 ```bash
 ./claude-rag-lite.sh query "<term>"    # If uv is available
 # Fallback (no-uv environments):
-python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query "<term>" --format text
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
+python3 rag_modules/search.py \
+  --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" \
+  --query "<term>" --format text
 ```
 
 3) Plan
@@ -233,9 +258,9 @@ python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query
 
 ```bash
 # Examples
-./scratchpad.sh fileto research_my_feature.md metadata
-./scratchpad.sh fileto plan_my_feature.md patterns "my_feature_plan"
-./scratchpad.sh delta "My Feature" "context or short summary here"
+./bash-tools/scratchpad.sh fileto research_my_feature.md metadata
+./bash-tools/scratchpad.sh fileto plan_my_feature.md patterns "my_feature_plan"
+./bash-tools/scratchpad.sh delta "My Feature" "context or short summary here"
 ```
 
 6) Rebuild index and validate
@@ -246,9 +271,10 @@ python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query
 ./claude-rag-lite.sh build
 
 # Fallback without uv:
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
 python3 rag_modules/indexer.py \
-  --claude-dir .claude \
-  --db-path .claude/.rag/claude_knowledge.db \
+  --claude-dir "${CLAUDE_DIR}" \
+  --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" \
   --incremental
 ```
 
@@ -256,7 +282,8 @@ python3 rag_modules/indexer.py \
 
 ```bash
 ./claude-rag-lite.sh query "my_feature" 5 || \
-python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query "my_feature" --format text
+CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
+python3 rag_modules/search.py --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" --query "my_feature" --format text
 ```
 
 ## Usage Examples
@@ -264,54 +291,54 @@ python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query
 ### Starting a New Task (Integrated Workflow)
 ```bash
 # Step 1: Create workspace AND search existing knowledge simultaneously
-./scratchpad.sh new task "implement_user_auth"
+./bash-tools/scratchpad.sh new task "implement_user_auth"
 ./claude-rag-lite.sh query "authentication JWT tokens user auth"
 
 # Step 2: Build on existing knowledge, document in scratchpad
-./scratchpad.sh append task_implement_user_auth_*.md "Found JWT pattern in patterns/jwt_auth.md"
-./scratchpad.sh append task_implement_user_auth_*.md "Previous auth debug in debug_history/auth_fix.md"
+./bash-tools/scratchpad.sh append task_implement_user_auth_*.md "Found JWT pattern in patterns/jwt_auth.md"
+./bash-tools/scratchpad.sh append task_implement_user_auth_*.md "Previous auth debug in debug_history/auth_fix.md"
 
 # Step 3: Continue working, searching, and documenting
 ./claude-rag-lite.sh query "session management"
-./scratchpad.sh append task_implement_user_auth_*.md "Implemented using existing session pattern"
+./bash-tools/scratchpad.sh append task_implement_user_auth_*.md "Implemented using existing session pattern"
 
 # Step 4: Complete cycle - file knowledge and update index
-./scratchpad.sh complete task_implement_user_auth_*.md
-./scratchpad.sh filed task_implement_user_auth_*.md
+./bash-tools/scratchpad.sh complete task_implement_user_auth_*.md
+./bash-tools/scratchpad.sh filed task_implement_user_auth_*.md
 ./claude-rag-lite.sh build  # New knowledge now searchable
 ```
 
 ### Debugging Session (Building on Past Solutions)
 ```bash
 # Step 1: Start debugging WITH knowledge search
-./scratchpad.sh new debug "api_timeout_issue"
+./bash-tools/scratchpad.sh new debug "api_timeout_issue"
 ./claude-rag-lite.sh query "timeout API connection error"  # Check if solved before
 
 # Step 2: Found similar issue - build on it
-./scratchpad.sh append debug_api_timeout_*.md "Similar issue in debug_history/timeout_2024.md"
-./scratchpad.sh append debug_api_timeout_*.md "Previous solution: 30s timeout, but this needs 45s"
+./bash-tools/scratchpad.sh append debug_api_timeout_*.md "Similar issue in debug_history/timeout_2024.md"
+./bash-tools/scratchpad.sh append debug_api_timeout_*.md "Previous solution: 30s timeout, but this needs 45s"
 
 # Step 3: Document complete solution for future
-./scratchpad.sh append debug_api_timeout_*.md "Root cause: Large payload processing"
-./scratchpad.sh complete debug_api_timeout_*.md
+./bash-tools/scratchpad.sh append debug_api_timeout_*.md "Root cause: Large payload processing"
+./bash-tools/scratchpad.sh complete debug_api_timeout_*.md
 ./claude-rag-lite.sh build  # Future debugging can find this
 ```
 
 ### Planning a Feature (Leveraging All Knowledge)
 ```bash
 # Step 1: Plan WITH comprehensive knowledge search
-./scratchpad.sh new plan "payment_integration"
+./bash-tools/scratchpad.sh new plan "payment_integration"
 ./claude-rag-lite.sh query "payment stripe webhook"  # Check existing implementations
 ./claude-rag-lite.sh query "error handling retry"    # Check patterns
 ./claude-rag-lite.sh query "payment"                 # Broad search for any related work
 
 # Step 2: Build plan incorporating all findings
-./scratchpad.sh append plan_payment_*.md "Found Stripe webhook pattern in patterns/webhook.md"
-./scratchpad.sh append plan_payment_*.md "Retry logic from patterns/retry_strategy.md"
-./scratchpad.sh append plan_payment_*.md "Previous payment debug in debug_history/payment_fix.md"
+./bash-tools/scratchpad.sh append plan_payment_*.md "Found Stripe webhook pattern in patterns/webhook.md"
+./bash-tools/scratchpad.sh append plan_payment_*.md "Retry logic from patterns/retry_strategy.md"
+./bash-tools/scratchpad.sh append plan_payment_*.md "Previous payment debug in debug_history/payment_fix.md"
 
 # Step 3: Complete planning phase
-./scratchpad.sh complete plan_payment_*.md
+./bash-tools/scratchpad.sh complete plan_payment_*.md
 ./claude-rag-lite.sh build  # Plan becomes searchable knowledge
 ```
 
@@ -321,7 +348,7 @@ python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query
 
 **Integrated Usage Pattern:**
 1. **Always start with both tools:**
-   - Create scratchpad for current work: `./scratchpad.sh new`
+   - Create scratchpad for current work: `./bash-tools/scratchpad.sh new`
    - Query existing knowledge: `./claude-rag-lite.sh query`
    - Append findings to scratchpad as you work
 
@@ -358,7 +385,18 @@ python3 rag_modules/search.py --db-path .claude/.rag/claude_knowledge.db --query
 ## Advanced Features
 
 ### Custom Scratchpad Types
-Extend scratchpad types by modifying the `create_scratchpad` function in `scratchpad.sh`.
+Extend scratchpad types by modifying the `create_scratchpad` function in `bash-tools/scratchpad.sh`.
+
+Default knowledge base location
+- Priority when choosing `.claude/` for both scratchpad and RAG:
+  1) `CLAUDE_DIR` env var or `.llm-tools.conf` setting
+  2) `$HOME/.claude` (created on first use if missing)
+  3) Repo `.claude` directory (fallback)
+
+To use your personal KB, either let the scripts create `$HOME/.claude` on first run, or set `CLAUDE_DIR`:
+```
+export CLAUDE_DIR="$HOME/.claude"
+```
 
 ### RAG Index Customization
 Configure indexing behavior by modifying `rag_modules/indexer.py`:
@@ -376,7 +414,7 @@ Configure indexing behavior by modifying `rag_modules/indexer.py`:
 ### Common Issues
 
 **Scratchpad not found:**
-- Check active scratchpads: `./scratchpad.sh list`
+- Check active scratchpads: `./bash-tools/scratchpad.sh list`
 - Use tab completion or partial filename matching
 
 **RAG returns no results:**
@@ -397,7 +435,7 @@ flowchart TD
 
     %% Research Phase
     Research["`**RESEARCH PHASE**  
-    - scratchpad.sh new task  
+    - bash-tools/scratchpad.sh new task  
     - Use RAG first: claude-rag-lite.sh query  
     - If low results → fallback: grep KB`"]
     --> Plan
@@ -431,7 +469,7 @@ flowchart TD
     GREP --> Plan
 
     %% Knowledge Base
-    subgraph CLAUDE[".claude Knowledge Base"]
+    subgraph CLAUDE[".claude Knowledge Base (default $HOME/.claude)"]
         metadata[metadata/]:::k
         delta[delta/]:::k
         qa[qa/]:::k

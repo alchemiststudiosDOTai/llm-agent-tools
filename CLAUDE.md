@@ -8,16 +8,16 @@ The scratchpad and RAG tools create a knowledge-building system. **ALWAYS follow
 
 ```bash
 # Start any task
-./scratchpad.sh scaffold [task_name]
+./bash-tools/scratchpad.sh scaffold [task_name]
 ./claude-rag-lite.sh query "[related terms]"
 
 # During work
-./scratchpad.sh append [research|plan|implement]_*.md "progress note"
+./bash-tools/scratchpad.sh append [research|plan|implement]_*.md "progress note"
 ./claude-rag-lite.sh query "error or pattern I need"
 
 # Complete work
-./scratchpad.sh fileto [file] [directory] [new_name]
-./scratchpad.sh delta "Feature Name" "what changed"
+./bash-tools/scratchpad.sh fileto [file] [directory] [new_name]
+./bash-tools/scratchpad.sh delta "Feature Name" "what changed"
 ./claude-rag-lite.sh build
 
 # Verify it's searchable
@@ -34,7 +34,7 @@ This is an integrated toolkit for LLM agents that combines temporary workspace m
 ## The Three-Phase Workflow
 
 ### 1. RESEARCH PHASE
-- Create scaffold: `./scratchpad.sh scaffold [task_name]`
+- Create scaffold: `./bash-tools/scratchpad.sh scaffold [task_name]`
 - Search ALL existing knowledge first
 - Document what you find in `research_*.md`
 - Identify gaps and existing patterns
@@ -68,21 +68,21 @@ This is an integrated toolkit for LLM agents that combines temporary workspace m
 ### Scratchpad Workflow
 ```bash
 # Create scratchpad (types: task, debug, plan, general)
-./scratchpad.sh new [type] "description"
+./bash-tools/scratchpad.sh new [type] "description"
 
 # Scaffold creates research/plan/implement structure
-./scratchpad.sh scaffold [task_name]
+./bash-tools/scratchpad.sh scaffold [task_name]
 
 # Work with scratchpads
-./scratchpad.sh list [filter]
-./scratchpad.sh view <filename>
-./scratchpad.sh append <filename> "text to add"
+./bash-tools/scratchpad.sh list [filter]
+./bash-tools/scratchpad.sh view <filename>
+./bash-tools/scratchpad.sh append <filename> "text to add"
 
 # Complete and file
-./scratchpad.sh complete <filename>  # Shows filing instructions
-./scratchpad.sh fileto <filename> <dir> [new_name]  # File to .claude/[dir]/
-./scratchpad.sh filed <filename>     # Mark as filed and remove
-./scratchpad.sh delta <title> [summary]  # Create timestamped change log
+./bash-tools/scratchpad.sh complete <filename>  # Shows filing instructions
+./bash-tools/scratchpad.sh fileto <filename> <dir> [new_name]  # File to .claude/[dir]/
+./bash-tools/scratchpad.sh filed <filename>     # Mark as filed and remove
+./bash-tools/scratchpad.sh delta <title> [summary]  # Create timestamped change log
 ```
 
 ### Python Environment
@@ -92,6 +92,16 @@ This is an integrated toolkit for LLM agents that combines temporary workspace m
 # Manual setup if needed:
 uv venv
 uv run python3 rag_modules/indexer.py --claude-dir .claude --db-path .claude/.rag/claude_knowledge.db
+```
+
+Default knowledge base location
+- Selection order for `.claude/` used by scratchpad and RAG:
+  1) `CLAUDE_DIR` env var or `.llm-tools.conf`
+  2) `$HOME/.claude` (created on first run if missing)
+  3) Repo `.claude` (fallback)
+Set `CLAUDE_DIR` to your personal KB to keep knowledge centralized (optional):
+```
+export CLAUDE_DIR="$HOME/.claude"
 ```
 
 ## Architecture
@@ -115,7 +125,7 @@ scratchpad (temp work) → .claude/[category]/ → RAG index → searchable know
   - `.rag/claude_knowledge.db` - SQLite FTS5 index
 
 ### Key Components
-- `scratchpad.sh` - Bash script managing temporary workspaces
+- `bash-tools/scratchpad.sh` - Bash script managing temporary workspaces
 - `claude-rag-lite.sh` - Bash wrapper for RAG system
 - `rag_modules/indexer.py` - Builds SQLite FTS5 index
 - `rag_modules/search.py` - Queries the index
