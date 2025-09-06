@@ -20,6 +20,9 @@ An integrated toolkit for LLM agents that combines temporary workspace managemen
 git clone https://github.com/yourusername/llm-agent-tools.git
 cd llm-agent-tools
 
+# IMPORTANT: Remove git history to avoid submodule issues
+rm -rf .git
+
 # Run the installer
 ./install.sh
 ```
@@ -34,8 +37,9 @@ The installer will:
 ### Zero-Config Quick Start (Recommended)
 
 - After cloning, you can run the tools immediately — no config needed.
-- By default, they create and use your personal knowledge base at `$HOME/.claude`.
-- Scratchpads live under `$HOME/.claude/scratchpad/active/` until you file them.
+- By default, tools use the parent project's `.claude` directory.
+- When cloned into `example/llm-agent-tools/`, tools use `example/.claude/`.
+- Scratchpads live under `example/.claude/scratchpad/active/` until you file them.
 
 ```bash
 # Create task scaffolding (research/plan/implement pads)
@@ -67,13 +71,16 @@ If you prefer manual installation:
 git clone https://github.com/yourusername/llm-agent-tools.git
 cd llm-agent-tools
 
+# IMPORTANT: Remove git history to avoid submodule issues
+rm -rf .git
+
 # Make scripts executable
 chmod +x bash-tools/scratchpad.sh claude-rag-lite.sh
 
 # Install Python dependencies
 uv pip install -r pyproject.toml
 
-# Initialize knowledge base structure (auto-creates $HOME/.claude if missing)
+# Initialize knowledge base structure (auto-creates parent project .claude if missing)
 ./bash-tools/scratchpad.sh new general "initial_setup"
 ```
 
@@ -82,7 +89,7 @@ uv pip install -r pyproject.toml
 You can use a custom directory instead of `.claude`:
 
 ```bash
-# Using environment variable (optional — defaults to $HOME/.claude)
+# Using environment variable (optional — defaults to parent project .claude)
 export CLAUDE_DIR="/path/to/your/knowledge/base"
 ./bash-tools/scratchpad.sh new task "my_task"
 
@@ -154,7 +161,7 @@ Manages temporary notes and working memory for AI agents during task execution.
 - `delta <title> [summary]` – Create a timestamped change log in `.claude/delta/`
 
 Notes:
-- By default, files are created under `$HOME/.claude`. Override with `CLAUDE_DIR` if desired.
+- By default, files are created under the parent project's `.claude` directory. Override with `CLAUDE_DIR` if desired.
 - A legacy wrapper `./scratchpad.sh` forwards to `./bash-tools/scratchpad.sh`.
 
 ### 3. claude-rag-lite.sh - Knowledge Retrieval System
@@ -180,9 +187,7 @@ Organized directory structure for persistent knowledge storage:
 ├── cheatsheets/       # Quick references, common commands, shortcuts
 ├── delta/             # Change logs, updates, modifications to existing code
 ├── anchors/           # Important code locations to remember
-└── scratchpad/        # Temporary working notes
-    ├── active/        # Currently active scratchpads
-    └── archive/       # Completed or old scratchpads
+
 ```
 
 ## Integrated Workflow
@@ -216,7 +221,7 @@ flowchart TD
     Review -->|Yes| Complete
     
     Complete["`**COMPLETION**
-    1. File scratchpad to appropriate .claude/ directory (default $HOME/.claude)
+    1. File scratchpad to appropriate .claude/ directory (default parent project .claude)
     2. Update RAG index: ./claude-rag-lite.sh build
     3. Knowledge now searchable for future tasks`"]
     --> End([Knowledge Base Enhanced])
@@ -241,7 +246,7 @@ Use the provided templates and helper commands to keep every task consistent and
 ```bash
 ./claude-rag-lite.sh query "<term>"    # If uv is available
 # Fallback (no-uv environments):
-CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
+CLAUDE_DIR="${CLAUDE_DIR:-$(dirname "$(pwd)")/.claude}" \
 python3 rag_modules/search.py \
   --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" \
   --query "<term>" --format text
@@ -271,7 +276,7 @@ python3 rag_modules/search.py \
 ./claude-rag-lite.sh build
 
 # Fallback without uv:
-CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
+CLAUDE_DIR="${CLAUDE_DIR:-$(dirname "$(pwd)")/.claude}" \
 python3 rag_modules/indexer.py \
   --claude-dir "${CLAUDE_DIR}" \
   --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" \
@@ -282,7 +287,7 @@ python3 rag_modules/indexer.py \
 
 ```bash
 ./claude-rag-lite.sh query "my_feature" 5 || \
-CLAUDE_DIR="${CLAUDE_DIR:-$HOME/.claude}" \
+CLAUDE_DIR="${CLAUDE_DIR:-$(dirname "$(pwd)")/.claude}" \
 python3 rag_modules/search.py --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db" --query "my_feature" --format text
 ```
 
@@ -382,6 +387,36 @@ python3 rag_modules/search.py --db-path "${CLAUDE_DIR}/.rag/claude_knowledge.db"
 - **delta/** - Chronological changes, updates, and modifications
 - **anchors/** - Critical code locations, entry points, important files
 
+## Directory Resolution
+
+### Project-Based Knowledge Isolation
+
+Both `scratchpad.sh` and `claude-rag-lite.sh` now use **parent project directory resolution** for better project isolation:
+
+```
+example/                    # Your project root
+├── .claude/               # Knowledge base (tools use this)
+├── llm-agent-tools/       # This repository
+│   ├── bash-tools/
+│   ├── rag_modules/
+│   ├── scratchpad.sh
+│   └── claude-rag-lite.sh
+└── your-code/
+```
+
+When cloned into `example/llm-agent-tools/`:
+- Tools automatically use `example/.claude/` (parent directory)
+- Scratchpads file to `example/.claude/categories/`
+- RAG indexes `example/.claude/` content
+- Maintains project knowledge isolation
+
+### Override Behavior
+
+You can still use custom locations via:
+```bash
+export CLAUDE_DIR="/path/to/custom/kb"
+```
+
 ## Advanced Features
 
 ### Custom Scratchpad Types
@@ -390,12 +425,12 @@ Extend scratchpad types by modifying the `create_scratchpad` function in `bash-t
 Default knowledge base location
 - Priority when choosing `.claude/` for both scratchpad and RAG:
   1) `CLAUDE_DIR` env var or `.llm-tools.conf` setting
-  2) `$HOME/.claude` (created on first use if missing)
-  3) Repo `.claude` directory (fallback)
+  2) Parent project `.claude` directory (e.g., `example/.claude` when cloned to `example/llm-agent-tools/`)
+  3) Created automatically if missing
 
-To use your personal KB, either let the scripts create `$HOME/.claude` on first run, or set `CLAUDE_DIR`:
+To use a custom KB location, set `CLAUDE_DIR`:
 ```
-export CLAUDE_DIR="$HOME/.claude"
+export CLAUDE_DIR="/path/to/your/knowledge/base"
 ```
 
 ### RAG Index Customization
@@ -469,7 +504,7 @@ flowchart TD
     GREP --> Plan
 
     %% Knowledge Base
-    subgraph CLAUDE[".claude Knowledge Base (default $HOME/.claude)"]
+    subgraph CLAUDE[".claude Knowledge Base (default parent project .claude)"]
         metadata[metadata/]:::k
         delta[delta/]:::k
         qa[qa/]:::k

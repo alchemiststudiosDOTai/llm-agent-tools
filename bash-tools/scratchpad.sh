@@ -16,16 +16,9 @@ if [[ -f "${REPO_ROOT}/.llm-tools.conf" ]]; then
     source "${REPO_ROOT}/.llm-tools.conf"
 fi
 
-# Resolve CLAUDE_DIR
-# Priority: env/loaded var -> $HOME/.claude if exists -> repo .claude
-if [[ -z "${CLAUDE_DIR:-}" ]]; then
-  if [[ -n "${HOME:-}" ]]; then
-    CLAUDE_DIR="${HOME}/.claude"
-  else
-    CLAUDE_DIR="${REPO_ROOT}/.claude"
-  fi
-fi
-readonly CLAUDE_DIR
+# CLAUDE_DIR is always in parent project root
+readonly CLAUDE_DIR="$(dirname "${REPO_ROOT}")/.claude"
+readonly MEMORY_BANK_DIR="${REPO_ROOT}/memory-bank"
 readonly SCRATCHPAD_DIR="${CLAUDE_DIR}/scratchpad"
 readonly TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 readonly DEFAULT_EDITOR="${EDITOR:-nano}"
@@ -307,12 +300,31 @@ file_to_directory() {
         return 1
     fi
 
-    local src_path="${SCRATCHPAD_DIR}/active/${filename}"
-    if [[ ! -f "${src_path}" ]]; then
-        src_path="${SCRATCHPAD_DIR}/active/${filename}.md"
+    # Check in memory-bank directories first
+    local memory_dirs=("${REPO_ROOT}/memory-bank/research" "${REPO_ROOT}/memory-bank/plans" "${REPO_ROOT}/memory-bank/execution")
+    local src_path=""
+    
+    # Try to find the file in memory-bank directories
+    for dir in "${memory_dirs[@]}"; do
+        if [[ -f "${dir}/${filename}" ]]; then
+            src_path="${dir}/${filename}"
+            break
+        elif [[ -f "${dir}/${filename}.md" ]]; then
+            src_path="${dir}/${filename}.md"
+            break
+        fi
+    done
+
+    # If not in memory-bank, check scratchpad
+    if [[ -z "${src_path}" ]]; then
+        src_path="${SCRATCHPAD_DIR}/active/${filename}"
+        if [[ ! -f "${src_path}" ]]; then
+            src_path="${SCRATCHPAD_DIR}/active/${filename}.md"
+        fi
     fi
+
     if [[ ! -f "${src_path}" ]]; then
-        print_status "${RED}" "Scratchpad not found: ${filename}"
+        print_status "${RED}" "File not found in memory-bank or scratchpad: ${filename}"
         return 1
     fi
 
@@ -485,9 +497,15 @@ main() {
             local date_str=$(date +"%Y-%m-%d %H:%M:%S")
             local owner_str="${CLAUDE_AGENT_ID:-user}"
             local tpl_dir="${SCRIPT_DIR}/scratchpad/templates"
-            local out_dir="${SCRATCHPAD_DIR}/active"
+            
+            # Use memory-bank directories for organized research/plan/execution
+            local memory_bank="${REPO_ROOT}/memory-bank"
+            local research_dir="${memory_bank}/research"
+            local plans_dir="${memory_bank}/plans"
+            local execution_dir="${memory_bank}/execution"
 
-            mkdir -p "${out_dir}"
+            # Create directories if they don't exist
+            mkdir -p "${research_dir}" "${plans_dir}" "${execution_dir}"
 
             # Render helper
             render_tpl() {
@@ -503,13 +521,16 @@ main() {
                 print_status "${GREEN}" "Created: $(basename "${dest}")"
             }
 
-            render_tpl "${tpl_dir}/research.template.md"   "${out_dir}/research_${safe_task}.md"
-            render_tpl "${tpl_dir}/plan.template.md"        "${out_dir}/plan_${safe_task}.md"
-            render_tpl "${tpl_dir}/implement.template.md"   "${out_dir}/implement_${safe_task}.md"
+            # Create files directly in memory-bank directories
+            render_tpl "${tpl_dir}/research.template.md"   "${research_dir}/${safe_task}_research.md"
+            render_tpl "${tpl_dir}/plan.template.md"       "${plans_dir}/${safe_task}_plan.md"
+            render_tpl "${tpl_dir}/implement.template.md"  "${execution_dir}/${safe_task}_execution.md"
 
-            echo "Path: ${out_dir}/research_${safe_task}.md"
-            echo "Path: ${out_dir}/plan_${safe_task}.md"
-            echo "Path: ${out_dir}/implement_${safe_task}.md"
+            echo "Research document: ${research_dir}/${safe_task}_research.md"
+            echo "Planning document: ${plans_dir}/${safe_task}_plan.md"
+            echo "Execution document: ${execution_dir}/${safe_task}_execution.md"
+            echo ""
+            echo "Use 'fileto' command to move completed documents to .claude/ categories"
             ;;
 
         fileto)

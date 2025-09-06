@@ -14,13 +14,9 @@ if [[ -f "${SCRIPT_DIR}/.llm-tools.conf" ]]; then
 fi
 
 # Resolve CLAUDE_DIR
-# Priority: env/loaded var -> $HOME/.claude if exists -> repo .claude
+# Priority: env/loaded var -> parent directory .claude
 if [[ -z "${CLAUDE_DIR:-}" ]]; then
-  if [[ -n "${HOME:-}" ]]; then
-    CLAUDE_DIR="${HOME}/.claude"
-  else
-    CLAUDE_DIR="${SCRIPT_DIR}/.claude"
-  fi
+  CLAUDE_DIR="$(dirname "${SCRIPT_DIR}")/.claude"
 fi
 readonly CLAUDE_DIR
 readonly DB_PATH="${CLAUDE_DIR}/.rag/claude_knowledge.db"
