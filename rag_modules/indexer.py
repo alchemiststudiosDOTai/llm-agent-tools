@@ -4,14 +4,12 @@ SQLite FTS5 Indexer for Claude Knowledge Base
 Uses only Python stdlib - no external dependencies
 """
 
-import os
 import sqlite3
-import json
 import hashlib
 import argparse
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional
+from typing import List, Tuple, Optional
 
 
 class FlexibleIndexer:
@@ -33,6 +31,8 @@ class FlexibleIndexer:
         """Disconnect from database"""
         if self.conn:
             self.conn.close()
+            self.conn = None
+            self.cursor = None
             
     def init_schema(self):
         """Initialize database schema with FTS5"""
@@ -146,19 +146,23 @@ class FlexibleIndexer:
             file_modified = datetime.fromtimestamp(filepath.stat().st_mtime)
             
             if existing_hash:
-                # Update existing document
+                # Update existing document with explicit timestamp to ensure it's different
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')
                 self.cursor.execute('''
-                    UPDATE docs 
-                    SET content = ?, title = ?, file_hash = ?, 
-                        indexed_at = CURRENT_TIMESTAMP, file_modified = ?
+                    UPDATE docs
+                    SET content = ?, title = ?, file_hash = ?,
+                        indexed_at = ?, file_modified = ?
                     WHERE path = ?
-                ''', (content, title, file_hash, file_modified, rel_path))
+                ''', (content, title, file_hash, timestamp, file_modified, rel_path))
             else:
-                # Insert new document
+                # Insert new document (will use default CURRENT_TIMESTAMP)
                 self.cursor.execute('''
                     INSERT INTO docs (path, category, title, content, file_hash, file_modified)
                     VALUES (?, ?, ?, ?, ?, ?)
                 ''', (rel_path, category, title, content, file_hash, file_modified))
+                
+            # Commit the transaction to ensure the timestamp is updated in the database
+            self.conn.commit()
                 
             return True
             

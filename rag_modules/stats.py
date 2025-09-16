@@ -7,8 +7,6 @@ Shows index statistics and metadata
 import sqlite3
 import argparse
 from pathlib import Path
-from datetime import datetime
-from collections import Counter
 
 
 class FlexibleStats:
@@ -31,6 +29,8 @@ class FlexibleStats:
         """Disconnect from database"""
         if self.conn:
             self.conn.close()
+            self.conn = None
+            self.cursor = None
             
     def get_stats(self):
         """Get comprehensive statistics"""

@@ -4,12 +4,11 @@ SQLite FTS5 Search for Claude Knowledge Base
 Compact output formats for agent consumption
 """
 
-import os
 import sqlite3
 import json
 import argparse
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 
 
 class FlexibleSearcher:
@@ -27,11 +26,16 @@ class FlexibleSearcher:
         self.conn = sqlite3.connect(str(self.db_path))
         self.conn.row_factory = sqlite3.Row  # Enable column access by name
         self.cursor = self.conn.cursor()
+        # Ensure connection is not None
+        if self.conn is None:
+            raise RuntimeError("Failed to establish database connection")
         
     def disconnect(self):
         """Disconnect from database"""
-        if self.conn:
+        if self.conn is not None:
             self.conn.close()
+            self.conn = None
+            self.cursor = None
             
     def extract_snippet(self, content: str, query: str, max_length: int = 500) -> str:
         """Extract relevant snippet around search term"""
