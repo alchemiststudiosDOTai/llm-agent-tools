@@ -11,8 +11,8 @@ from datetime import datetime
 from collections import Counter
 
 
-class ClaudeStats:
-    """Statistics for .claude knowledge base"""
+class FlexibleStats:
+    """Statistics for flexible directory structures using SQLite FTS5"""
     
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
@@ -89,7 +89,7 @@ class ClaudeStats:
         """Format statistics for display"""
         output = []
         output.append("=" * 60)
-        output.append("Claude Knowledge Base Statistics")
+        output.append("Documentation Knowledge Base Statistics")
         output.append("=" * 60)
         
         output.append(f"\nTotal Documents: {stats['total_docs']}")
@@ -127,13 +127,13 @@ class ClaudeStats:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Show .claude index statistics')
+    parser = argparse.ArgumentParser(description='Show documentation index statistics')
     parser.add_argument('--db-path', required=True, help='Path to SQLite database')
     parser.add_argument('--json', action='store_true', help='Output as JSON')
     
     args = parser.parse_args()
     
-    stats_tool = ClaudeStats(args.db_path)
+    stats_tool = FlexibleStats(args.db_path)
     stats = stats_tool.get_stats()
     
     if args.json:

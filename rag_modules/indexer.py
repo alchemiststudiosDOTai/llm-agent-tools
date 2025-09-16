@@ -14,23 +14,11 @@ from datetime import datetime
 from typing import Dict, List, Tuple, Optional
 
 
-class ClaudeIndexer:
-    """Indexer for .claude knowledge base using SQLite FTS5"""
+class FlexibleIndexer:
+    """Indexer for flexible directory structures using SQLite FTS5"""
     
-    # Categories mapped to directories
-    CATEGORIES = {
-        'metadata': 'Component analysis and system docs',
-        'code_index': 'Code relationships and mappings',
-        'debug_history': 'Debug sessions and fixes',
-        'patterns': 'Implementation patterns',
-        'qa': 'Questions and answers',
-        'cheatsheets': 'Quick references',
-        'delta': 'Change logs and updates',
-        'anchors': 'Important code locations'
-    }
-    
-    def __init__(self, claude_dir: str, db_path: str):
-        self.claude_dir = Path(claude_dir)
+    def __init__(self, directories: List[str], db_path: str):
+        self.directories = [Path(d) for d in directories]
         self.db_path = Path(db_path)
         self.conn = None
         self.cursor = None
@@ -137,12 +125,12 @@ class ClaudeIndexer:
         result = self.cursor.fetchone()
         return result[0] if result else None
         
-    def index_file(self, filepath: Path, category: str, force: bool = False):
+    def index_file(self, filepath: Path, category: str, root_dir: Path, force: bool = False):
         """Index a single file"""
         if not self.should_index_file(filepath):
             return False
             
-        rel_path = str(filepath.relative_to(self.claude_dir))
+        rel_path = str(filepath.relative_to(root_dir))
         file_hash = self.compute_file_hash(filepath)
         
         # Check if file needs updating
@@ -178,18 +166,26 @@ class ClaudeIndexer:
             print(f"Error indexing {filepath}: {e}")
             return False
             
-    def index_category(self, category: str) -> Tuple[int, int]:
-        """Index all files in a category directory"""
-        category_dir = self.claude_dir / category
-        if not category_dir.exists():
+    def index_directory(self, directory: Path) -> Tuple[int, int]:
+        """Index all files in a directory and its subdirectories"""
+        if not directory.exists():
             return 0, 0
             
         indexed = 0
         updated = 0
         
-        for filepath in category_dir.rglob('*'):
+        # Process files directly in the root directory
+        for filepath in directory.rglob('*'):
             if filepath.is_file():
-                if self.index_file(filepath, category):
+                # Determine category from the directory structure
+                # The category is the name of the immediate parent directory
+                category = filepath.parent.name
+                
+                # Normalize category name
+                category = category.replace(' ', '_').replace('-', '_')
+                category = category.lower()
+                
+                if self.index_file(filepath, category, directory):
                     indexed += 1
                     
         return indexed, updated
@@ -201,8 +197,15 @@ class ClaudeIndexer:
         
         deleted = 0
         for doc_id, path in all_docs:
-            full_path = self.claude_dir / path
-            if not full_path.exists():
+            # Check if file exists in any of the provided directories
+            file_exists = False
+            for directory in self.directories:
+                full_path = directory / path
+                if full_path.exists():
+                    file_exists = True
+                    break
+                    
+            if not file_exists:
                 self.cursor.execute('DELETE FROM docs WHERE id = ?', (doc_id,))
                 deleted += 1
                 
@@ -216,15 +219,14 @@ class ClaudeIndexer:
         total_indexed = 0
         total_updated = 0
         
-        print(f"Indexing .claude directory: {self.claude_dir}")
+        print(f"Indexing directories: {', '.join(str(d) for d in self.directories)}")
         print("-" * 50)
         
-        for category in self.CATEGORIES:
-            indexed, updated = self.index_category(category)
+        # Process each directory
+        for directory in self.directories:
+            indexed, updated = self.index_directory(directory)
             total_indexed += indexed
             total_updated += updated
-            if indexed > 0:
-                print(f"  {category:15} : {indexed} files indexed")
                 
         # Clean up deleted files
         if incremental:
@@ -249,20 +251,60 @@ class ClaudeIndexer:
         self.disconnect()
 
 
+def find_default_directories() -> List[str]:
+    """Find default documentation directories in current directory or parent directory"""
+    current_dir = Path.cwd()
+    default_dirs = []
+    
+    # First check current directory
+    # Check for docs directory first
+    docs_dir = current_dir / 'docs'
+    if docs_dir.exists() and docs_dir.is_dir():
+        default_dirs.append(str(docs_dir))
+        
+    # Check for documentation directory
+    documentation_dir = current_dir / 'documentation'
+    if documentation_dir.exists() and documentation_dir.is_dir():
+        default_dirs.append(str(documentation_dir))
+        
+    # If no documentation found in current directory, check parent directory
+    if not default_dirs:
+        parent_dir = current_dir.parent
+        
+        # Check for docs directory in parent
+        docs_dir = parent_dir / 'docs'
+        if docs_dir.exists() and docs_dir.is_dir():
+            default_dirs.append(str(docs_dir))
+            
+        # Check for documentation directory in parent
+        documentation_dir = parent_dir / 'documentation'
+        if documentation_dir.exists() and documentation_dir.is_dir():
+            default_dirs.append(str(documentation_dir))
+            
+    return default_dirs
+
 def main():
-    parser = argparse.ArgumentParser(description='Index .claude knowledge base')
-    parser.add_argument('--claude-dir', required=True, help='Path to .claude directory')
+    parser = argparse.ArgumentParser(description='Index documentation directories using SQLite FTS5')
+    parser.add_argument('--directories', nargs='*', help='Paths to directories to index')
     parser.add_argument('--db-path', required=True, help='Path to SQLite database')
-    parser.add_argument('--incremental', action='store_true', 
+    parser.add_argument('--incremental', action='store_true',
                        help='Incremental update (default)', default=True)
-    parser.add_argument('--full', action='store_true', 
+    parser.add_argument('--full', action='store_true',
                        help='Full rebuild of index')
     
     args = parser.parse_args()
     
+    # If no directories provided, use default behavior
+    if not args.directories:
+        args.directories = find_default_directories()
+        if not args.directories:
+            print("Error: No directories specified and no default directories found")
+            print("Default directories searched: docs/, documentation/ in current and parent directory")
+            return 1
+            
     incremental = not args.full
     
-    indexer = ClaudeIndexer(args.claude_dir, args.db_path)
+    indexer = FlexibleIndexer(args.directories, args.db_path)
     indexer.build_index(incremental=incremental)
 
 

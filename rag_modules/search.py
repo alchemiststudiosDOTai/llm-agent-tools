@@ -12,8 +12,8 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional
 
 
-class ClaudeSearcher:
-    """Search interface for .claude knowledge base"""
+class FlexibleSearcher:
+    """Search interface for flexible directory structures using SQLite FTS5"""
     
     def __init__(self, db_path: str):
         self.db_path = Path(db_path)
@@ -189,11 +189,12 @@ class ClaudeSearcher:
             
             results = []
             for row in rows:
+                snippet = self.extract_snippet(row['content'], query, 500)
                 results.append({
                     'path': row['path'],
                     'category': row['category'],
                     'title': row['title'],
-                    'content': row['content'][:500],  # Truncate for preview
+                    'snippet': snippet,
                     'rank': row['rank']
                 })
                 
@@ -204,7 +205,7 @@ class ClaudeSearcher:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Search .claude knowledge base')
+    parser = argparse.ArgumentParser(description='Search documentation knowledge base')
     parser.add_argument('--db-path', required=True, help='Path to SQLite database')
     parser.add_argument('--query', required=True, help='Search query')
     parser.add_argument('--limit', type=int, default=10, help='Maximum results')
@@ -216,7 +217,7 @@ def main():
     
     args = parser.parse_args()
     
-    searcher = ClaudeSearcher(args.db_path)
+    searcher = FlexibleSearcher(args.db_path)
     
     if args.category:
         results = searcher.search_category(args.query, args.category, args.limit)
