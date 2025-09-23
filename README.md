@@ -57,14 +57,19 @@ The included `rag-cli.sh` provides a simple interface for using the RAG tools:
 ## Directory Structure
 
 ```
-rag_modules/
-├── rag-cli.sh          # Main CLI script
-├── rag_knowledge.db    # SQLite database (created after first run)
-├── indexer.py          # Documentation indexer
-├── search.py           # Full-text search interface
-├── stats.py            # Index statistics and health monitoring
-├── README.md           # This file
-└── default_directory_behavior.md  # Details on directory detection
+.
+├── README.md                           # Main project documentation
+├── rag_modules/                        # RAG (Retrieval-Augmented Generation) tools
+│   ├── rag-cli.sh                     # Main CLI script
+│   ├── rag_knowledge.db               # SQLite database (created after first run)
+│   ├── indexer.py                     # Documentation indexer
+│   ├── search.py                      # Full-text search interface
+│   ├── stats.py                       # Index statistics and health monitoring
+│   └── default_directory_behavior.md  # Details on directory detection
+└── knowledge_base/                    # Knowledge base and memory tools
+    ├── README.md                      # Knowledge base documentation
+    └── tools/
+        └── anchor_drop.py            # Memory anchor placement tool
 ```
 
 ## Customizing Path Pointing
