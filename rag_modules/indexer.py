@@ -113,8 +113,8 @@ class FlexibleIndexer:
         
     def should_index_file(self, filepath: Path) -> bool:
         """Check if file should be indexed"""
-        # Only index markdown and text files
-        return filepath.suffix in ['.md', '.txt', '.markdown']
+        # Only index markdown, text and JSON files
+        return filepath.suffix in ['.md', '.txt', '.markdown', '.json']
         
     def get_existing_file_hash(self, filepath: str) -> Optional[str]:
         """Get hash of existing indexed file"""
