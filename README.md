@@ -1,6 +1,40 @@
-# RAG Modules
+# LLM Agent Tools
+
+A collection of tools for working with AI agents, including RAG modules and memory anchor management.
+
+## RAG Modules
 
 Retrieval-Augmented Generation modules for indexing and searching documentation using SQLite FTS5.
+
+## Memory Anchor Tools
+
+### anchor_drop.py
+
+A tool for dropping memory anchors in code to mark important locations for later reference.
+
+```bash
+# Usage
+python3 knowledge_base/tools/anchor_drop.py <file> <line> <description> [kind]
+
+# Example
+python3 knowledge_base/tools/anchor_drop.py src/main.py 42 "Main entry point" line
+```
+
+Features:
+- Supports multiple programming languages (Python, JavaScript, TypeScript, Go, C/C++, Java, Rust, Zig, SQL, HTML)
+- Generates unique UUID keys for each anchor
+- Stores anchor metadata in `.claude/memory_anchors/anchors.json`
+- Inserts language-appropriate comments in code
+
+To use with a different knowledge base directory:
+```bash
+# Set environment variable for custom anchor location
+export CLAUDE_DIR="/path/to/your/kb/.claude"
+
+# Or run from within your project directory
+cd /path/to/your/project
+python3 /path/to/llm-agent-tools/knowledge_base/tools/anchor_drop.py <file> <line> <description>
+```
 
 ## Quick Start (CLI)
 
