@@ -10,18 +10,16 @@ use uuid::Uuid;
 
 const MEMORY_ROOT: &str = ".claude/memory_anchors";
 const ANCHORS_FILE: &str = "anchors.json";
+const DEFAULT_KIND: &str = "line";
+const ACTIVE_STATUS: &str = "active";
 
 #[derive(Parser, Debug)]
 #[command(version, about = "Drop a CLAUDE memory anchor", long_about = None)]
 struct Args {
-    /// Path to the file where the anchor comment should be inserted
     file: PathBuf,
-    /// Line number (1-based) where the anchor should be inserted
     #[arg(value_parser = clap::value_parser!(usize))]
     line: usize,
-    /// Description for the anchor (wrap in quotes when containing spaces)
     desc: String,
-    /// Optional kind for the anchor (defaults to "line")
     kind: Option<String>,
 }
 
@@ -70,7 +68,7 @@ fn run() -> Result<()> {
     let file_path = args.file;
     let line_num = args.line;
     let description = args.desc;
-    let kind = args.kind.unwrap_or_else(|| "line".to_string());
+    let kind = args.kind.unwrap_or_else(|| DEFAULT_KIND.to_string());
 
     if !file_path.exists() {
         println!("File {} not found.", file_path.display());
@@ -78,17 +76,8 @@ fn run() -> Result<()> {
     }
 
     let mut lines = read_file_lines(&file_path)?;
-    if line_num == 0 {
-        println!(
-            "Invalid line {} for file with {} lines.",
-            line_num,
-            lines.len()
-        );
-        return Ok(());
-    }
-
     let max_valid = lines.len() + 1;
-    if line_num > max_valid {
+    if line_num == 0 || line_num > max_valid {
         println!(
             "Invalid line {} for file with {} lines.",
             line_num,
@@ -102,11 +91,11 @@ fn run() -> Result<()> {
     let insert_at = line_num - 1;
     lines.insert(insert_at, comment);
     fs::write(&file_path, lines.concat())
-        .with_context(|| format!("Failed to write updated content to {}", file_path.display()))?;
+        .with_context(file_context("write updated content to", &file_path))?;
 
     let anchor_root = PathBuf::from(MEMORY_ROOT);
     fs::create_dir_all(&anchor_root)
-        .with_context(|| format!("Failed to create {}", anchor_root.display()))?;
+        .with_context(file_context("create", &anchor_root))?;
 
     let anchors_path = anchor_root.join(ANCHORS_FILE);
     let mut record = load_record(&anchors_path)?;
@@ -117,7 +106,7 @@ fn run() -> Result<()> {
         line: line_num,
         kind,
         description,
-        status: "active".to_string(),
+        status: ACTIVE_STATUS.to_string(),
         created: now,
     });
     record.touch_generated();
@@ -181,7 +170,7 @@ fn load_record(path: &Path) -> Result<AnchorsRecord> {
     }
 
     let file = File::open(path)
-        .with_context(|| format!("Failed to open anchors file {}", path.display()))?;
+        .with_context(file_context("open anchors file", path))?;
     let reader = BufReader::new(file);
     match serde_json::from_reader(reader) {
         Ok(record) => Ok(record),
@@ -194,8 +183,12 @@ fn load_record(path: &Path) -> Result<AnchorsRecord> {
 
 fn write_record(path: &Path, record: &AnchorsRecord) -> Result<()> {
     let file = File::create(path)
-        .with_context(|| format!("Failed to write anchors file {}", path.display()))?;
+        .with_context(file_context("write anchors file", path))?;
     serde_json::to_writer_pretty(file, record).context("Failed to serialize anchors record")
+}
+
+fn file_context(operation: &str, path: &Path) -> impl FnOnce() -> String + '_ {
+    move || format!("Failed to {} {}", operation, path.display())
 }
 
 fn current_timestamp() -> String {
