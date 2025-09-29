@@ -111,11 +111,11 @@ impl Searcher {
         let results = stmt
             .query_map([query, &limit.to_string()], |row| {
                 Ok((
-                    row.get::<_, String>(0)?,  // path
-                    row.get::<_, String>(1)?,  // category
-                    row.get::<_, String>(2)?,  // title
-                    row.get::<_, String>(3)?,  // content
-                    row.get::<_, f64>(4)?,     // rank
+                    row.get::<_, String>(0)?, // path
+                    row.get::<_, String>(1)?, // category
+                    row.get::<_, String>(2)?, // title
+                    row.get::<_, String>(3)?, // content
+                    row.get::<_, f64>(4)?,    // rank
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -160,11 +160,11 @@ impl Searcher {
         let results = stmt
             .query_map([query, category, &limit.to_string()], |row| {
                 Ok((
-                    row.get::<_, String>(0)?,  // path
-                    row.get::<_, String>(1)?,  // category
-                    row.get::<_, String>(2)?,  // title
-                    row.get::<_, String>(3)?,  // content
-                    row.get::<_, f64>(4)?,     // rank
+                    row.get::<_, String>(0)?, // path
+                    row.get::<_, String>(1)?, // category
+                    row.get::<_, String>(2)?, // title
+                    row.get::<_, String>(3)?, // content
+                    row.get::<_, f64>(4)?,    // rank
                 ))
             })?
             .collect::<Result<Vec<_>, _>>()?;
@@ -188,7 +188,9 @@ impl Searcher {
 fn format_results(results: &[SearchResult], query: &str, format: &OutputFormat) -> Result<String> {
     if results.is_empty() {
         return match format {
-            OutputFormat::Json | OutputFormat::Jsonl => Ok(String::from("{\"results\":[],\"count\":0}")),
+            OutputFormat::Json | OutputFormat::Jsonl => {
+                Ok(String::from("{\"results\":[],\"count\":0}"))
+            }
             OutputFormat::Text => Ok(String::from("No results found.")),
         };
     }
@@ -221,14 +223,18 @@ fn format_results(results: &[SearchResult], query: &str, format: &OutputFormat) 
         }
         OutputFormat::Text => {
             let mut output = Vec::new();
-            output.push(format!("Found {} results for '{}':\n", results.len(), query));
-            
+            output.push(format!(
+                "Found {} results for '{}':\n",
+                results.len(),
+                query
+            ));
+
             for (i, r) in results.iter().enumerate() {
                 output.push(format!("{}. [{}] {}", i + 1, r.category, r.title));
                 output.push(format!("   Path: {}", r.path));
                 output.push(format!("   {}\n", r.snippet));
             }
-            
+
             Ok(output.join("\n"))
         }
     }
