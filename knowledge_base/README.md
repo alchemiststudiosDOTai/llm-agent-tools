@@ -12,9 +12,13 @@ These tools help maintain persistent memory anchors within codebases, enabling:
 
 ## Tools
 
-### anchor_drop.py
+### Python Tools
 
-The first tool in the suite. Drops memory anchors at specific locations in code files.
+Located in `python-tools/` directory.
+
+#### anchor_drop.py
+
+Drops memory anchors at specific locations in code files.
 
 **Features:**
 - Inserts `CLAUDE_ANCHOR[key=UUID]` comments in code
@@ -24,16 +28,35 @@ The first tool in the suite. Drops memory anchors at specific locations in code 
 
 **Usage:**
 ```bash
-python3 anchor_drop.py <file_path> <line_number> <description> [kind]
+python3 python-tools/anchor_drop.py <file_path> <line_number> <description> [kind]
 ```
 
 **Examples:**
 ```bash
 # Drop an anchor at line 42 in main.py
-python3 anchor_drop.py main.py 42 "Critical authentication logic"
+python3 python-tools/anchor_drop.py main.py 42 "Critical authentication logic"
 
 # Drop an anchor with specific kind
-python3 anchor_drop.py utils.py 15 "Helper function" "function"
+python3 python-tools/anchor_drop.py utils.py 15 "Helper function" "function"
+```
+
+### Rust Tools
+
+Located in `rust-tools/` directory.
+
+#### anchor-drop
+
+Rust implementation of anchor dropping functionality.
+
+**Build:**
+```bash
+cd rust-tools/anchor-drop
+cargo build --release
+```
+
+**Usage:**
+```bash
+./target/release/anchor-drop <file_path> <line_number> <description> [kind]
 ```
 
 **Supported Languages:**
@@ -47,6 +70,8 @@ python3 anchor_drop.py utils.py 15 "Helper function" "function"
 - Zig (.zig) - `//` comments
 - SQL (.sql) - `--` comments
 - HTML (.html, .htm) - `<!-- -->` comments
+
+*Note: Both Python and Rust tools support the same set of programming languages.*
 
 ## Anchor Data Structure
 
