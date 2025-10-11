@@ -36,6 +36,26 @@ cd /path/to/your/project
 python3 /path/to/llm-agent-tools/knowledge_base/tools/anchor_drop.py <file> <line> <description>
 ```
 
+## Dead Code Tools
+
+### knip-dead-code.sh
+
+Static analysis and heuristics for unused exports, files, and members in TypeScript/JavaScript projects using Knip.
+
+```bash
+# Run with default settings
+./deadcode/knip-dead-code.sh
+
+# Increase verbosity or adjust Knip arguments
+VERBOSE=1 KNIP_ARGS="--ignore dependencies" ./deadcode/knip-dead-code.sh
+```
+
+Features:
+- Delegates unused symbol detection to Knip with JSON reporting.
+- Adds heuristics for framework conventions (Next.js routes, Storybook stories, ambient `.d.ts` files).
+- Summarizes findings into actionable buckets (REMOVE, REVIEW, KEEP, TEST_ONLY).
+- Optional code context snippets controlled via `VERBOSE`.
+
 ## Quick Start (CLI)
 
 The included `rag-cli.sh` provides a simple interface for using the RAG tools:
@@ -59,6 +79,8 @@ The included `rag-cli.sh` provides a simple interface for using the RAG tools:
 ```
 .
 ├── README.md                           # Main project documentation
+├── deadcode/                           # Dead code detection scripts
+│   └── knip-dead-code.sh               # Knip-based TS/JS dead code analyzer
 ├── rag_modules/                        # RAG (Retrieval-Augmented Generation) tools
 │   ├── rag-cli.sh                     # Main CLI script
 │   ├── rag_knowledge.db               # SQLite database (created after first run)
