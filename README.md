@@ -1,216 +1,56 @@
 # LLM Agent Tools
 
-A collection of tools for working with AI agents, including RAG modules and memory anchor management.
+Direct bash tools for LLM agents. No MCP, no orchestration layers, no vendor lock-in.
 
-## RAG Modules
+## Philosophy
 
-Retrieval-Augmented Generation modules for indexing and searching documentation using SQLite FTS5.
+Skip the complexity. Bash scripts work everywhere, live in git, and print every token to your terminal. Agents call these tools via CLI just like any other command.
 
-## Memory Anchor Tools
+Why bash over MCP:
+- **Ubiquitous** - runs on any POSIX system
+- **Transparent** - full visibility into every operation
+- **Debuggable** - grep, diff, version control
+- **Composable** - pipe output between tools
 
-### anchor_drop.py
+## Tools
 
-A tool for dropping memory anchors in code to mark important locations for later reference.
+| Tool | Description |
+|------|-------------|
+| `exa-search.sh` | Web search via Exa API |
 
-```bash
-# Usage
-python3 knowledge_base/tools/anchor_drop.py <file> <line> <description> [kind]
-
-# Example
-python3 knowledge_base/tools/anchor_drop.py src/main.py 42 "Main entry point" line
-```
-
-Features:
-- Supports multiple programming languages (Python, JavaScript, TypeScript, Go, C/C++, Java, Rust, Zig, SQL, HTML)
-- Generates unique UUID keys for each anchor
-- Stores anchor metadata in `.claude/memory_anchors/anchors.json`
-- Inserts language-appropriate comments in code
-
-To use with a different knowledge base directory:
-```bash
-# Set environment variable for custom anchor location
-export CLAUDE_DIR="/path/to/your/kb/.claude"
-
-# Or run from within your project directory
-cd /path/to/your/project
-python3 /path/to/llm-agent-tools/knowledge_base/tools/anchor_drop.py <file> <line> <description>
-```
-
-## Dead Code Tools
-
-### knip-dead-code.sh
-
-Static analysis and heuristics for unused exports, files, and members in TypeScript/JavaScript projects using Knip.
+## Setup
 
 ```bash
-# Run with default settings
-./deadcode/knip-dead-code.sh
+cp .env.example .env
+# Add your API keys to .env
 
-# Increase verbosity or adjust Knip arguments
-VERBOSE=1 KNIP_ARGS="--ignore dependencies" ./deadcode/knip-dead-code.sh
+source .env
+./exa-search.sh "your query"
 ```
 
-Features:
-- Delegates unused symbol detection to Knip with JSON reporting.
-- Adds heuristics for framework conventions (Next.js routes, Storybook stories, ambient `.d.ts` files).
-- Summarizes findings into actionable buckets (REMOVE, REVIEW, KEEP, TEST_ONLY).
-- Optional code context snippets controlled via `VERBOSE`.
+## For Agents
 
-## Quick Start (CLI)
-
-The included `rag-cli.sh` provides a simple interface for using the RAG tools:
+These tools are designed for LLM agents to invoke directly:
 
 ```bash
-# Index the default memory-bank directory
-./rag-cli.sh index
+# Agent searches the web
+./exa-search.sh -n 5 "rust error handling best practices"
 
-# Search indexed content
-./rag-cli.sh search "your query here"
+# Agent gets structured output
+./exa-search.sh -o json "tokio async runtime"
 
-# View index statistics
-./rag-cli.sh stats
-
-# Index a custom directory
-./rag-cli.sh index --dir /path/to/your/docs
+# Agent filters by domain
+./exa-search.sh -d docs.rs "channel mpsc"
 ```
 
-## Directory Structure
+Output goes to stdout (for the agent), errors to stderr (for debugging).
 
-```
-.
-├── README.md                           # Main project documentation
-├── deadcode/                           # Dead code detection scripts
-│   └── knip-dead-code.sh               # Knip-based TS/JS dead code analyzer
-├── rag_modules/                        # RAG (Retrieval-Augmented Generation) tools
-│   ├── rag-cli.sh                     # Main CLI script
-│   ├── rag_knowledge.db               # SQLite database (created after first run)
-│   ├── indexer.py                     # Documentation indexer
-│   ├── search.py                      # Full-text search interface
-│   ├── stats.py                       # Index statistics and health monitoring
-│   └── default_directory_behavior.md  # Details on directory detection
-└── knowledge_base/                    # Knowledge base and memory tools
-    ├── README.md                      # Knowledge base documentation
-    └── tools/
-        └── anchor_drop.py            # Memory anchor placement tool
-```
+## Adding New Tools
 
-## Customizing Path Pointing
-
-The RAG system is flexible and can point to any directory you want to index:
-
-### Via CLI (Recommended)
-```bash
-# Index any directory
-./rag-cli.sh index --dir /path/to/your/project/docs
-
-# Index multiple directories
-./rag-cli.sh index --dir ./docs ./wiki ./notes
-
-# Use a custom database location
-./rag-cli.sh index --dir ./docs --db-path /custom/path/to/my.db
-```
-
-### Via Environment Variables
-```bash
-# Set custom database path
-export RAG_DB_PATH="/custom/location/knowledge.db"
-
-# Enable verbose output
-export RAG_VERBOSE=1
-
-# Then run commands normally
-./rag-cli.sh index
-```
-
-### Direct Module Usage
-```bash
-# Index specific directories with full control
-python3 indexer.py --directories ./src ./docs ./README.md --db-path ./my_docs.db
-
-# Search with specific parameters
-python3 search.py --db-path ./my_docs.db --query "API reference" --category src --format json
-```
-
-## Agent Usage Guide
-
-For AI agents and programmatic use:
-
-### 1. Index Documentation
-```bash
-# For agent knowledge bases
-./rag-cli.sh index --dir /path/to/agent/knowledge
-```
-
-### 2. Search (JSON output recommended)
-```bash
-# Get search results in JSON format for parsing
-./rag-cli.sh search "implementation details" --format json
-
-# Search within specific categories
-./rag-cli.sh search "API methods" --category api --format json
-```
-
-### 3. Check Index Health
-```bash
-# Get statistics in JSON format
-./rag-cli.sh stats --json
-```
-
-## CLI Reference
-
-### Index Command
-```bash
-./rag-cli.sh index [options]
-  --full           # Full rebuild of index
-  --dir DIR        # Directory to index (default: ../memory-bank)
-  --db PATH        # Custom database path
-```
-
-### Search Command
-```bash
-./rag-cli.sh search <query> [options]
-  --category CAT   # Search within specific category
-  --format FMT     # Output: json|text|markdown (default: json)
-  --limit N        # Maximum results (default: 10)
-  --db PATH        # Custom database path
-```
-
-### Stats Command
-```bash
-./rag-cli.sh stats [options]
-  --json           # Output in JSON format
-  --db PATH        # Custom database path
-```
-
-## Default Directory Behavior
-
-When no directories are specified, the system automatically searches for documentation:
-1. First looks in the current directory for `docs/` or `documentation/` folders
-2. If not found, checks the parent directory for the same folders
-
-## Supported File Types
-
-- Markdown files (.md, .markdown)
-- Text files (.txt)
-
-## Output Formats
-
-- **JSON**: Compact JSONL format for agent consumption
-- **Text**: Human-readable with highlighted search terms
-- **Markdown**: Formatted output with proper formatting
-
-## Examples
-
-```bash
-# Index project documentation
-./rag-cli.sh index --dir ./docs
-
-# Search for specific patterns
-./rag-cli.sh search "authentication flow" --category guide --format markdown
-
-# Check what's indexed
-./rag-cli.sh stats
-
-# Full reindex when files change significantly
-./rag-cli.sh index --full --dir ./docs
-```
+Each tool should:
+1. Use `set -euo pipefail`
+2. Read config from environment variables
+3. Output clean, parseable text to stdout
+4. Send errors to stderr
+5. Include `-h/--help`
+6. Exit non-zero on failure
