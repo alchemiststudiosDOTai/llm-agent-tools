@@ -16,7 +16,7 @@ Why bash over MCP:
 
 | Tool | Description |
 |------|-------------|
-| `exa-search.sh` | Web search via Exa API |
+| `tools/exa-search.sh` | Web search via Exa API |
 
 ## Setup
 
@@ -25,7 +25,7 @@ cp .env.example .env
 # Add your API keys to .env
 
 source .env
-./exa-search.sh "your query"
+./tools/exa-search.sh "your query"
 ```
 
 ## For Agents
@@ -34,20 +34,20 @@ These tools are designed for LLM agents to invoke directly:
 
 ```bash
 # Agent searches the web
-./exa-search.sh -n 5 "rust error handling best practices"
+./tools/exa-search.sh -n 5 "rust error handling best practices"
 
 # Agent gets structured output
-./exa-search.sh -o json "tokio async runtime"
+./tools/exa-search.sh -o json "tokio async runtime"
 
 # Agent filters by domain
-./exa-search.sh -d docs.rs "channel mpsc"
+./tools/exa-search.sh -d docs.rs "channel mpsc"
 ```
 
 Output goes to stdout (for the agent), errors to stderr (for debugging).
 
 ## Adding New Tools
 
-Each tool should:
+Add new scripts to `tools/`. Each tool should:
 1. Use `set -euo pipefail`
 2. Read config from environment variables
 3. Output clean, parseable text to stdout
