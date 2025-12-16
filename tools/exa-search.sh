@@ -19,6 +19,7 @@ include_summary=false
 start_date=""
 end_date=""
 output_format="markdown"
+verbose=false
 
 usage() {
     cat >&2 <<EOF
@@ -39,10 +40,13 @@ OPTIONS:
     --after <DATE>        Published after date (YYYY-MM-DD)
     --before <DATE>       Published before date (YYYY-MM-DD)
     -o, --output <FMT>    Output format: markdown, json (default: markdown)
+    -v, --verbose         Enable verbose output
     -h, --help            Show this help
 
-ENVIRONMENT:
-    EXA_API_KEY           Required. Your Exa API key.
+# ENVIRONMENT:
+#    EXA_API_KEY           Required. Your Exa API key.
+#                          Load it via 'source .env' (ensure it has 'export EXA_API_KEY=...')
+#                          or pass it inline: 'EXA_API_KEY=... ./tools/exa-search.sh ...'
 
 EXAMPLES:
     exa-search "rust async programming"
@@ -56,6 +60,10 @@ EOF
 die() {
     echo "error: $*" >&2
     exit 1
+}
+
+log() {
+    [[ "$verbose" == true ]] && echo "debug: $*" >&2
 }
 
 # Parse arguments
@@ -105,6 +113,10 @@ while [[ $# -gt 0 ]]; do
         -o|--output)
             output_format="$2"
             shift 2
+            ;;
+        -v|--verbose)
+            verbose=true
+            shift
             ;;
         -h|--help)
             usage
