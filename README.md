@@ -17,6 +17,7 @@ Why bash over MCP:
 | Tool | Description |
 |------|-------------|
 | `tools/exa-search.sh` | Web search via Exa API |
+| `tools/scratchpad.sh` | External memory for reasoning ([paper](https://arxiv.org/abs/2507.17699)) |
 
 ## Setup
 
@@ -36,11 +37,10 @@ These tools are designed for LLM agents to invoke directly:
 # Agent searches the web
 ./tools/exa-search.sh -n 5 "rust error handling best practices"
 
-# Agent gets structured output
-./tools/exa-search.sh -o json "tokio async runtime"
-
-# Agent filters by domain
-./tools/exa-search.sh -d docs.rs "channel mpsc"
+# Agent uses scratchpad for multi-step reasoning
+./tools/scratchpad.sh set '{"peg_A": [3,2,1], "peg_B": [], "peg_C": []}'
+./tools/scratchpad.sh pop peg_A && ./tools/scratchpad.sh push peg_C 1
+./tools/scratchpad.sh get  # Check state
 ```
 
 Output goes to stdout (for the agent), errors to stderr (for debugging).
