@@ -17,7 +17,10 @@ Why bash over MCP:
 | Tool | Description |
 |------|-------------|
 | `tools/exa-search.sh` | Web search via Exa API |
+| `tools/memory-journal.sh` | Project context and decision logging |
 | `tools/scratchpad.sh` | External memory for reasoning ([paper](https://arxiv.org/abs/2507.17699)) |
+| `tools/list-tools.sh` | Discover available tools |
+| `tools/verify-tools.sh` | Validate tool compliance |
 
 ## Setup
 

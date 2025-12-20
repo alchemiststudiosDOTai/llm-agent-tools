@@ -178,8 +178,7 @@ cmd_add() {
     
     local header="## $timestamp"
     if [[ -n "$tags" ]]; then
-        header="$header (\"
-$tags\")"
+        header="$header (\`$tags\`)"
     fi
 
     {
